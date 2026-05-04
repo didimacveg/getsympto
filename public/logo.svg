@@ -1,18 +1,15 @@
-<svg width="520" height="160" viewBox="0 0 520 160" role="img" xmlns="http://www.w3.org/2000/svg">
+<svg width="1200" height="630" viewBox="0 0 1200 630" role="img" xmlns="http://www.w3.org/2000/svg">
   <title>Sympto+ logo</title>
-  <rect width="520" height="160" fill="white"/>
+  <rect width="1200" height="630" fill="white"/>
   <text
-    x="20"
-    y="118"
+    x="600"
+    y="360"
+    text-anchor="middle"
     font-family="Georgia, 'Times New Roman', serif"
-    font-size="110"
+    font-size="220"
     font-style="italic"
     font-weight="400"
     fill="#2a7fd4"
-    letter-spacing="-2"
-  >Sympto</text>
-  <g transform="translate(390, 60)">
-    <rect x="0" y="28" width="52" height="10" rx="5" fill="#2a7fd4"/>
-    <rect x="21" y="7" width="10" height="52" rx="5" fill="#2a7fd4"/>
-  </g>
+    letter-spacing="-4"
+  >Sympto+</text>
 </svg>
