@@ -44,8 +44,8 @@ const FRONT_PATHS = {
   brazo_der: 'M 100 142 C 108 155 110 172 108 190 C 106 202 100 210 92 212 L 82 210 L 82 138 L 92 136 Z',
   antebrazo_izq: 'M -8 190 C -12 206 -12 224 -8 240 C -5 250 2 256 10 255 L 18 252 L 18 208 L 8 210 Z',
   antebrazo_der: 'M 108 190 C 112 206 112 224 108 240 C 105 250 98 256 90 255 L 82 252 L 82 208 L 92 210 Z',
-  mano_izq: 'M -8 240 C -10 252 -6 264 2 270 C 10 275 20 272 22 262 L 18 250 L 10 253 Z',
-  mano_der: 'M 108 240 C 110 252 106 264 98 270 C 90 275 80 272 78 262 L 82 250 L 90 253 Z',
+  mano_izq: 'M 108 240 C 110 252 106 264 98 270 C 90 275 80 272 78 262 L 82 250 L 90 253 Z',
+  mano_der: 'M -8 240 C -10 252 -6 264 2 270 C 10 275 20 272 22 262 L 18 250 L 10 253 Z',
   muslo_izq: 'M 21 222 L 48 222 L 46 288 C 44 302 40 314 34 320 L 24 320 C 16 314 13 302 14 288 Z',
   muslo_der: 'M 52 222 L 79 222 L 86 288 C 87 302 84 314 76 320 L 66 320 C 60 314 56 302 54 288 Z',
   rodilla_izq: 'M 15 320 L 40 320 L 38 342 L 17 342 Z',
@@ -148,7 +148,7 @@ export default function BodyMap({ onZoneSelect, selectedZone }) {
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full flex gap-2 items-start justify-center">
-        <div className="flex flex-col items-center flex-1 max-w-[160px]">
+        <div className="flex flex-col items-center flex-1 max-w-40">
           <span className="text-xs text-slate-400 mb-1 font-medium">Frontal</span>
           <BodyView
             paths={FRONT_PATHS}
@@ -158,7 +158,7 @@ export default function BodyMap({ onZoneSelect, selectedZone }) {
             onHover={setHovered}
           />
         </div>
-        <div className="flex flex-col items-center flex-1 max-w-[160px]">
+        <div className="flex flex-col items-center flex-1 max-w-40">
           <span className="text-xs text-slate-400 mb-1 font-medium">Posterior</span>
           <BodyView
             paths={BACK_PATHS}
