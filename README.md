@@ -1,3 +1,12 @@
+# Sympto+ App
+Plataforma de orientación sintomática con IA.
+
+**Inicio del proyecto:** Mayo 2026  
+**Autor:** Diego  
+**Estado:** MVP en desarrollo  
+
+© 2026 Diego. Todos los derechos reservados.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
