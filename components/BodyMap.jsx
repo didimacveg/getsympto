@@ -1,9 +1,9 @@
 'use client';
 import { useState } from 'react';
 
-const ZONES = {
+const ALL_ZONES = {
   cabeza: { label: 'Cabeza', emoji: '🧠' },
-  cuello: { label: 'Cuello', emoji: '🫀' },
+  cuello: { label: 'Cuello', emoji: '🔵' },
   hombro_izq: { label: 'Hombro izquierdo', emoji: '💪' },
   hombro_der: { label: 'Hombro derecho', emoji: '💪' },
   pecho: { label: 'Pecho / Tórax', emoji: '❤️' },
@@ -23,11 +23,18 @@ const ZONES = {
   pierna_der: { label: 'Pierna derecha', emoji: '🦵' },
   pie_izq: { label: 'Pie izquierdo', emoji: '🦶' },
   pie_der: { label: 'Pie derecho', emoji: '🦶' },
+  espalda_alta: { label: 'Espalda alta', emoji: '🔙' },
+  espalda_media: { label: 'Espalda media', emoji: '🔙' },
+  lumbar: { label: 'Zona lumbar', emoji: '🔙' },
+  gluteo_izq: { label: 'Glúteo izquierdo', emoji: '🔙' },
+  gluteo_der: { label: 'Glúteo derecho', emoji: '🔙' },
+  gemelo_izq: { label: 'Gemelo izquierdo', emoji: '🦵' },
+  gemelo_der: { label: 'Gemelo derecho', emoji: '🦵' },
 };
 
-const PATHS = {
+const FRONT_PATHS = {
   cabeza: 'M 50 36 m -30 0 a 30 34 0 1 0 60 0 a 30 34 0 1 0 -60 0',
-  cuello: 'M 36 68 C 36 68 30 72 28 80 L 28 100 C 36 103 50 105 50 105 C 50 105 64 103 72 100 L 72 80 C 70 72 64 68 64 68 Z',
+  cuello: 'M 36 68 C 30 72 28 80 28 100 C 36 103 50 105 50 105 C 50 105 64 103 72 100 C 72 80 70 72 64 68 Z',
   hombro_izq: 'M 28 98 C 20 98 8 102 2 112 C -2 120 0 132 8 138 L 20 140 L 20 102 Z',
   hombro_der: 'M 72 98 C 80 98 92 102 98 112 C 102 120 100 132 92 138 L 80 140 L 80 102 Z',
   pecho: 'M 20 100 L 80 100 L 82 142 L 18 142 Z',
@@ -49,70 +56,110 @@ const PATHS = {
   pie_der: 'M 64 398 L 88 398 C 93 399 99 408 97 418 C 96 428 82 432 72 425 C 64 420 62 408 64 398 Z',
 };
 
+const BACK_PATHS = {
+  cabeza: 'M 50 36 m -30 0 a 30 34 0 1 0 60 0 a 30 34 0 1 0 -60 0',
+  cuello: 'M 36 68 C 30 72 28 80 28 100 C 36 103 50 105 50 105 C 50 105 64 103 72 100 C 72 80 70 72 64 68 Z',
+  hombro_izq: 'M 28 98 C 20 98 8 102 2 112 C -2 120 0 132 8 138 L 20 140 L 20 102 Z',
+  hombro_der: 'M 72 98 C 80 98 92 102 98 112 C 102 120 100 132 92 138 L 80 140 L 80 102 Z',
+  espalda_alta: 'M 20 100 L 80 100 L 82 155 L 18 155 Z',
+  espalda_media: 'M 18 155 L 82 155 L 80 200 L 20 200 Z',
+  lumbar: 'M 20 200 L 80 200 C 83 211 83 220 79 226 L 21 226 C 17 220 17 211 20 200 Z',
+  brazo_izq: 'M 0 142 C -8 155 -10 172 -8 190 C -6 202 0 210 8 212 L 18 210 L 18 138 L 8 136 Z',
+  brazo_der: 'M 100 142 C 108 155 110 172 108 190 C 106 202 100 210 92 212 L 82 210 L 82 138 L 92 136 Z',
+  antebrazo_izq: 'M -8 190 C -12 206 -12 224 -8 240 C -5 250 2 256 10 255 L 18 252 L 18 208 L 8 210 Z',
+  antebrazo_der: 'M 108 190 C 112 206 112 224 108 240 C 105 250 98 256 90 255 L 82 252 L 82 208 L 92 210 Z',
+  mano_izq: 'M -8 240 C -10 252 -6 264 2 270 C 10 275 20 272 22 262 L 18 250 L 10 253 Z',
+  mano_der: 'M 108 240 C 110 252 106 264 98 270 C 90 275 80 272 78 262 L 82 250 L 90 253 Z',
+  gluteo_izq: 'M 21 226 L 48 226 L 46 285 C 44 298 38 308 30 310 L 22 310 C 15 308 13 297 14 284 Z',
+  gluteo_der: 'M 52 226 L 79 226 L 86 284 C 87 297 85 308 78 310 L 70 310 C 62 308 56 298 54 285 Z',
+  muslo_izq: 'M 14 310 L 40 310 L 38 358 L 17 358 Z',
+  muslo_der: 'M 60 310 L 86 310 L 83 358 L 62 358 Z',
+  gemelo_izq: 'M 17 358 L 38 358 L 37 415 C 36 426 31 434 25 436 L 20 436 C 14 433 10 423 11 411 Z',
+  gemelo_der: 'M 62 358 L 83 358 L 89 411 C 90 423 86 433 80 436 L 75 436 C 69 434 64 426 63 415 Z',
+  pie_izq: 'M 11 411 L 36 411 C 38 421 35 432 27 437 C 17 444 3 440 2 430 C 0 420 6 412 11 411 Z',
+  pie_der: 'M 64 411 L 89 411 C 94 412 100 420 98 430 C 97 440 83 444 73 437 C 65 432 62 421 64 411 Z',
+};
+
+const DIVIDERS_FRONT = [
+  'M 36 68 L 64 68',
+  'M 18 142 L 82 142',
+  'M 20 195 L 80 195',
+];
+
+const DIVIDERS_BACK = [
+  'M 36 68 L 64 68',
+  'M 18 155 L 82 155',
+  'M 20 200 L 80 200',
+];
+
+function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover }) {
+  return (
+    <svg viewBox="0 0 200 460" className="w-full" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50, 18)">
+        {Object.entries(paths).map(([id, d]) => {
+          const isSelected = selectedZone === id;
+          return (
+            <path
+              key={id}
+              d={d}
+              fill={isSelected ? '#2563eb' : '#7ea3c4'}
+              stroke={isSelected ? '#1d4ed8' : '#5a88aa'}
+              strokeWidth={isSelected ? '1.2' : '0.6'}
+              style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
+              onClick={() => onZoneSelect(id)}
+              onMouseEnter={() => onHover(id)}
+              onMouseLeave={() => onHover(null)}
+              onMouseOver={(e) => {
+                if (!isSelected) e.currentTarget.setAttribute('fill', '#3b82f6');
+              }}
+              onMouseOut={(e) => {
+                if (!isSelected) e.currentTarget.setAttribute('fill', '#7ea3c4');
+              }}
+            />
+          );
+        })}
+        {dividers.map((d, i) => (
+          <path key={i} d={d} fill="none" stroke="#5a88aa" strokeWidth="0.5" strokeDasharray="3,2" style={{ pointerEvents: 'none' }} />
+        ))}
+      </g>
+      <ellipse cx="100" cy="450" rx="40" ry="5" fill="#c8d8e8" />
+    </svg>
+  );
+}
+
 export default function BodyMap({ onZoneSelect, selectedZone }) {
   const [hovered, setHovered] = useState(null);
   const activeZone = hovered || selectedZone;
 
-  const getColor = (id) => {
-    if (selectedZone === id) return '#3b82f6';
-    if (hovered === id) return '#93c5fd';
-    return '#dde3ed';
-  };
-
-  const getStroke = (id) => {
-    if (selectedZone === id) return '#2563eb';
-    if (hovered === id) return '#60a5fa';
-    return '#b8c4d8';
-  };
-
   return (
     <div className="w-full flex flex-col items-center">
-      <svg
-        viewBox="0 0 200 460"
-        className="w-full max-w-45"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g transform="translate(50, 18)">
-          {Object.entries(PATHS).map(([id, d]) => (
-            <path
-              key={id}
-              d={d}
-              fill={getColor(id)}
-              stroke={getStroke(id)}
-              strokeWidth={selectedZone === id ? '1.2' : '0.6'}
-              style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
-              onClick={() => onZoneSelect(id)}
-              onMouseEnter={() => setHovered(id)}
-              onMouseLeave={() => setHovered(null)}
-            />
-          ))}
-
-          {/* Divisores internos */}
-          {[
-            'M 36 68 L 64 68',
-            'M 18 142 L 82 142',
-            'M 20 195 L 80 195',
-          ].map((d, i) => (
-            <path
-              key={i}
-              d={d}
-              fill="none"
-              stroke="#b8c4d8"
-              strokeWidth="0.5"
-              strokeDasharray="3,2"
-              pointerEvents="none"
-            />
-          ))}
-        </g>
-
-        {/* Sombra suave bajo los pies */}
-        <ellipse cx="100" cy="447" rx="42" ry="6" fill="#e2e8f0" />
-      </svg>
+      <div className="w-full flex gap-2 items-start justify-center">
+        <div className="flex flex-col items-center flex-1 max-w-[160px]">
+          <span className="text-xs text-slate-400 mb-1 font-medium">Frontal</span>
+          <BodyView
+            paths={FRONT_PATHS}
+            dividers={DIVIDERS_FRONT}
+            selectedZone={selectedZone}
+            onZoneSelect={onZoneSelect}
+            onHover={setHovered}
+          />
+        </div>
+        <div className="flex flex-col items-center flex-1 max-w-[160px]">
+          <span className="text-xs text-slate-400 mb-1 font-medium">Posterior</span>
+          <BodyView
+            paths={BACK_PATHS}
+            dividers={DIVIDERS_BACK}
+            selectedZone={selectedZone}
+            onZoneSelect={onZoneSelect}
+            onHover={setHovered}
+          />
+        </div>
+      </div>
 
       <div className="mt-3 h-8">
-        {activeZone && (
+        {activeZone && ALL_ZONES[activeZone] && (
           <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-            {ZONES[activeZone]?.emoji} {ZONES[activeZone]?.label}
+            {ALL_ZONES[activeZone].emoji} {ALL_ZONES[activeZone].label}
           </span>
         )}
       </div>
