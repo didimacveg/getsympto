@@ -70,14 +70,14 @@ const BACK_PATHS = {
   antebrazo_der: 'M 108 190 C 112 206 112 224 108 240 C 105 250 98 256 90 255 L 82 252 L 82 208 L 92 210 Z',
   mano_izq: 'M -8 240 C -10 252 -6 264 2 270 C 10 275 20 272 22 262 L 18 250 L 10 253 Z',
   mano_der: 'M 108 240 C 110 252 106 264 98 270 C 90 275 80 272 78 262 L 82 250 L 90 253 Z',
-  gluteo_izq: 'M 21 226 L 48 226 L 46 285 C 44 298 38 308 30 310 L 22 310 C 15 308 13 297 14 284 Z',
-  gluteo_der: 'M 52 226 L 79 226 L 86 284 C 87 297 85 308 78 310 L 70 310 C 62 308 56 298 54 285 Z',
-  muslo_izq: 'M 14 310 L 40 310 L 38 358 L 17 358 Z',
-  muslo_der: 'M 60 310 L 86 310 L 83 358 L 62 358 Z',
-  gemelo_izq: 'M 17 358 L 38 358 L 37 415 C 36 426 31 434 25 436 L 20 436 C 14 433 10 423 11 411 Z',
-  gemelo_der: 'M 62 358 L 83 358 L 89 411 C 90 423 86 433 80 436 L 75 436 C 69 434 64 426 63 415 Z',
-  pie_izq: 'M 11 411 L 36 411 C 38 421 35 432 27 437 C 17 444 3 440 2 430 C 0 420 6 412 11 411 Z',
-  pie_der: 'M 64 411 L 89 411 C 94 412 100 420 98 430 C 97 440 83 444 73 437 C 65 432 62 421 64 411 Z',
+  gluteo_izq: 'M 21 226 L 48 226 L 46 264 C 44 272 38 276 30 276 L 22 276 C 15 276 13 270 14 264 Z',
+  gluteo_der: 'M 52 226 L 79 226 L 86 264 C 87 270 85 276 78 276 L 70 276 C 62 276 56 272 54 264 Z',
+  muslo_izq: 'M 14 276 L 40 276 L 38 342 L 16 342 Z',
+  muslo_der: 'M 60 276 L 86 276 L 84 342 L 62 342 Z',
+  gemelo_izq: 'M 16 342 L 38 342 L 37 398 C 36 411 31 420 25 422 L 20 422 C 14 420 10 410 11 398 Z',
+  gemelo_der: 'M 62 342 L 84 342 L 89 398 C 90 410 86 420 80 422 L 75 422 C 69 420 64 411 63 398 Z',
+  pie_izq: 'M 11 398 L 36 398 C 38 408 35 420 27 425 C 17 432 3 428 2 418 C 0 408 6 399 11 398 Z',
+  pie_der: 'M 64 398 L 89 398 C 93 399 99 408 97 418 C 96 428 82 432 72 425 C 64 420 62 408 64 398 Z',
 };
 
 const DIVIDERS_FRONT = [
@@ -115,7 +115,7 @@ function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover, isBack
   const c = isBack ? COLORS.back : COLORS.front;
 
   return (
-    <svg viewBox="0 0 200 460" className="w-full" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 200 450" className="w-full" xmlns="http://www.w3.org/2000/svg">
       <g transform="translate(50, 18)">
         {Object.entries(paths).map(([id, d]) => {
           const isSelected = selectedZone === id;
@@ -151,7 +151,7 @@ function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover, isBack
           />
         ))}
       </g>
-      <ellipse cx="100" cy="450" rx="40" ry="5" fill={c.shadow} />
+      <ellipse cx="100" cy="442" rx="40" ry="5" fill={c.shadow} />
     </svg>
   );
 }
