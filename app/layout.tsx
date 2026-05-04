@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,41 @@ export default function RootLayout({
       lang="es"
       className={`${geistSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+
+        {/* Footer legal */}
+        <footer className="border-t border-slate-100 bg-white py-6 mt-auto">
+          <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+            <span>© 2026 Sympto+. Todos los derechos reservados.</span>
+            <div className="flex gap-4">
+              
+                href="https://www.iubenda.com/privacy-policy/95390448"
+                className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors"
+                title="Política de Privacidad"
+              >
+                Política de Privacidad
+              </a>
+              
+                href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy"
+                className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors"
+                title="Política de Cookies"
+              >
+                Política de Cookies
+              </a>
+            </div>
+          </div>
+        </footer>
+
+        {/* Iubenda script */}
+        <Script
+          id="iubenda"
+          strategy="lazyOnload"
+          dangerouslySetInnerHTML={{
+            __html: `(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);`,
+          }}
+        />
+      </body>
     </html>
   );
 }
