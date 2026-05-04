@@ -92,6 +92,12 @@ const DIVIDERS_BACK = [
   'M 20 200 L 80 200',
 ];
 
+const BASE_COLOR = '#4a7fa5';
+const HOVER_COLOR = '#3b82f6';
+const SELECTED_COLOR = '#2563eb';
+const STROKE_BASE = '#376080';
+const STROKE_SELECTED = '#1d4ed8';
+
 function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover }) {
   return (
     <svg viewBox="0 0 200 460" className="w-full" xmlns="http://www.w3.org/2000/svg">
@@ -102,27 +108,35 @@ function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover }) {
             <path
               key={id}
               d={d}
-              fill={isSelected ? '#2563eb' : '#7ea3c4'}
-              stroke={isSelected ? '#1d4ed8' : '#5a88aa'}
+              fill={isSelected ? SELECTED_COLOR : BASE_COLOR}
+              stroke={isSelected ? STROKE_SELECTED : STROKE_BASE}
               strokeWidth={isSelected ? '1.2' : '0.6'}
               style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
               onClick={() => onZoneSelect(id)}
               onMouseEnter={() => onHover(id)}
               onMouseLeave={() => onHover(null)}
               onMouseOver={(e) => {
-                if (!isSelected) e.currentTarget.setAttribute('fill', '#3b82f6');
+                if (!isSelected) e.currentTarget.setAttribute('fill', HOVER_COLOR);
               }}
               onMouseOut={(e) => {
-                if (!isSelected) e.currentTarget.setAttribute('fill', '#7ea3c4');
+                if (!isSelected) e.currentTarget.setAttribute('fill', BASE_COLOR);
               }}
             />
           );
         })}
         {dividers.map((d, i) => (
-          <path key={i} d={d} fill="none" stroke="#5a88aa" strokeWidth="0.5" strokeDasharray="3,2" style={{ pointerEvents: 'none' }} />
+          <path
+            key={i}
+            d={d}
+            fill="none"
+            stroke={STROKE_BASE}
+            strokeWidth="0.5"
+            strokeDasharray="3,2"
+            style={{ pointerEvents: 'none' }}
+          />
         ))}
       </g>
-      <ellipse cx="100" cy="450" rx="40" ry="5" fill="#c8d8e8" />
+      <ellipse cx="100" cy="450" rx="40" ry="5" fill="#2d6a94" />
     </svg>
   );
 }
