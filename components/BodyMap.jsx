@@ -92,13 +92,28 @@ const DIVIDERS_BACK = [
   'M 20 200 L 80 200',
 ];
 
-const BASE_COLOR = '#4a7fa5';
-const HOVER_COLOR = '#3b82f6';
-const SELECTED_COLOR = '#2563eb';
-const STROKE_BASE = '#376080';
-const STROKE_SELECTED = '#1d4ed8';
+const COLORS = {
+  front: {
+    base: '#4a7fa5',
+    hover: '#3b82f6',
+    selected: '#2563eb',
+    stroke: '#376080',
+    strokeSelected: '#1d4ed8',
+    shadow: '#2d6a94',
+  },
+  back: {
+    base: '#3a8a6a',
+    hover: '#22c55e',
+    selected: '#16a34a',
+    stroke: '#2d6e54',
+    strokeSelected: '#15803d',
+    shadow: '#2d6e54',
+  },
+};
 
-function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover }) {
+function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover, isBack }) {
+  const c = isBack ? COLORS.back : COLORS.front;
+
   return (
     <svg viewBox="0 0 200 460" className="w-full" xmlns="http://www.w3.org/2000/svg">
       <g transform="translate(50, 18)">
@@ -108,18 +123,18 @@ function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover }) {
             <path
               key={id}
               d={d}
-              fill={isSelected ? SELECTED_COLOR : BASE_COLOR}
-              stroke={isSelected ? STROKE_SELECTED : STROKE_BASE}
+              fill={isSelected ? c.selected : c.base}
+              stroke={isSelected ? c.strokeSelected : c.stroke}
               strokeWidth={isSelected ? '1.2' : '0.6'}
               style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
               onClick={() => onZoneSelect(id)}
               onMouseEnter={() => onHover(id)}
               onMouseLeave={() => onHover(null)}
               onMouseOver={(e) => {
-                if (!isSelected) e.currentTarget.setAttribute('fill', HOVER_COLOR);
+                if (!isSelected) e.currentTarget.setAttribute('fill', c.hover);
               }}
               onMouseOut={(e) => {
-                if (!isSelected) e.currentTarget.setAttribute('fill', BASE_COLOR);
+                if (!isSelected) e.currentTarget.setAttribute('fill', c.base);
               }}
             />
           );
@@ -129,14 +144,14 @@ function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover }) {
             key={i}
             d={d}
             fill="none"
-            stroke={STROKE_BASE}
+            stroke={c.stroke}
             strokeWidth="0.5"
             strokeDasharray="3,2"
             style={{ pointerEvents: 'none' }}
           />
         ))}
       </g>
-      <ellipse cx="100" cy="450" rx="40" ry="5" fill="#2d6a94" />
+      <ellipse cx="100" cy="450" rx="40" ry="5" fill={c.shadow} />
     </svg>
   );
 }
@@ -156,6 +171,7 @@ export default function BodyMap({ onZoneSelect, selectedZone }) {
             selectedZone={selectedZone}
             onZoneSelect={onZoneSelect}
             onHover={setHovered}
+            isBack={false}
           />
         </div>
         <div className="flex flex-col items-center flex-1 max-w-40">
@@ -166,6 +182,7 @@ export default function BodyMap({ onZoneSelect, selectedZone }) {
             selectedZone={selectedZone}
             onZoneSelect={onZoneSelect}
             onHover={setHovered}
+            isBack={true}
           />
         </div>
       </div>
