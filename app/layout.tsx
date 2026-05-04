@@ -19,6 +19,14 @@ export const metadata: Metadata = {
     siteName: "Sympto+",
     locale: "es_ES",
     type: "website",
+    images: [
+      {
+        url: 'https://getsympto.app/opengraph-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Sympto+',
+      },
+    ],
   },
   robots: {
     index: true,
@@ -26,6 +34,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://getsympto.app",
+  },
+  icons: {
+    icon: '/logo.svg',
+    apple: '/logo.svg',
   },
 };
 
