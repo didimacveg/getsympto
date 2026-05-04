@@ -5,10 +5,10 @@ import SymptomForm from '@/components/SymptomForm';
 import Report from '@/components/Report';
 
 export default function Home() {
-  const [selectedZone, setSelectedZone] = useState(null);
-  const [report, setReport] = useState(null);
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async (symptomData: Record<string, string>) => {
     setLoading(true);
@@ -23,7 +23,7 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || 'Error desconocido');
       setReport(data);
     } catch (e) {
-      setError(e.message);
+      setError(e instanceof Error ? e.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
@@ -38,8 +38,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        
-        {/* Header */}
+
         <header className="text-center mb-10">
           <h1 className="text-3xl font-bold text-slate-800">¿Qué zona te molesta?</h1>
           <p className="text-slate-500 mt-2 text-sm">
@@ -48,23 +47,20 @@ export default function Home() {
           </p>
         </header>
 
-        {/* Disclaimer visible */}
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 text-center">
-          ⚠️ Esta herramienta es exclusivamente informativa y educativa. No sustituye la consulta con un profesional médico. 
+          ⚠️ Esta herramienta es exclusivamente informativa y educativa. No sustituye la consulta con un profesional médico.
           Ante síntomas graves o urgentes, llama al <strong>112</strong>.
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          
-          {/* Columna izquierda: mapa corporal */}
+
           <div className="flex flex-col items-center">
-            <BodyMap onZoneSelect={(z) => { setSelectedZone(z); setReport(null); }} selectedZone={selectedZone} />
+            <BodyMap onZoneSelect={(z: string) => { setSelectedZone(z); setReport(null); }} selectedZone={selectedZone} />
             {!selectedZone && (
               <p className="text-slate-400 text-sm mt-4 animate-pulse">↑ Toca la zona que te molesta</p>
             )}
           </div>
 
-          {/* Columna derecha: formulario o informe */}
           <div>
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm mb-4">
