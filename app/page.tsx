@@ -10,7 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleAnalyze = async (symptomData) => {
+  const handleAnalyze = async (symptomData: Record<string, string>) => {
     setLoading(true);
     setError(null);
     try {
