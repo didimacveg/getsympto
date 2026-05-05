@@ -115,4 +115,41 @@
     "privacy": "隐私政策",
     "cookies": "Cookie政策"
   }
+  ,
+"auth": {
+  "login": "登录",
+  "register": "注册",
+  "logout": "退出登录",
+  "my_account": "我的账户",
+  "email": "电子邮件",
+  "password": "密码",
+  "name": "姓名",
+  "login_title": "欢迎回来",
+  "register_title": "创建账户",
+  "login_btn": "登录",
+  "register_btn": "创建账户",
+  "no_account": "没有账户？立即注册",
+  "have_account": "已有账户？立即登录",
+  "error_invalid": "邮箱或密码错误",
+  "error_exists": "该邮箱已注册",
+  "error_generic": "出错了，请重试。",
+  "success_register": "账户创建成功！",
+  "close": "关闭",
+  "or": "或"
+},
+"reviews": {
+  "title": "用户评价",
+  "subtitle": "使用过Sympto+的真实用户评价",
+  "write_review": "写评价",
+  "your_name": "您的姓名",
+  "your_comment": "Sympto+如何帮助了您？",
+  "rating": "评分",
+  "submit": "提交评价",
+  "thank_you": "感谢您的评价！",
+  "login_required": "请登录后留下评价",
+  "verified": "已验证",
+  "see_all": "查看所有评价",
+  "based_on": "基于",
+  "reviews_word": "条评价"
+}
 }

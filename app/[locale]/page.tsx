@@ -5,6 +5,8 @@ import { useTranslations, useLocale } from 'next-intl';
 import BodyMap from '@/components/BodyMap';
 import SymptomForm from '@/components/SymptomForm';
 import Report from '@/components/Report';
+import ReviewsSection from '@/components/ReviewsSection';
+import AuthButton from '@/components/AuthButton';
 
 const SEO_ZONES_ES = [
   { zona: 'Cabeza', ejemplos: 'dolor de cabeza, migraña, presión en las sienes' },
@@ -85,9 +87,12 @@ export default function Home() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <nav className="flex items-center justify-between mb-8">
           <span className="font-bold text-slate-800 text-lg">Sympto+</span>
-          <Link href={`/${locale}/blog`} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm">
-            {t('see_guides').replace(' →', '')}
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href={`/${locale}/blog`} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm">
+              {t('see_guides').replace(' →', '')}
+            </Link>
+            <AuthButton />
+          </div>
         </nav>
 
         <header className="text-center mb-10">
@@ -148,6 +153,8 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        <ReviewsSection />
 
         <footer className="mt-12 text-center text-xs text-slate-400 pb-6">
           <p>{t('footer_copy')}</p>

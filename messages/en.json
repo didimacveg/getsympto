@@ -115,4 +115,41 @@
     "privacy": "Privacy Policy",
     "cookies": "Cookie Policy"
   }
+  ,
+"auth": {
+  "login": "Sign in",
+  "register": "Sign up",
+  "logout": "Sign out",
+  "my_account": "My account",
+  "email": "Email",
+  "password": "Password",
+  "name": "Name",
+  "login_title": "Welcome back",
+  "register_title": "Create account",
+  "login_btn": "Sign in",
+  "register_btn": "Create account",
+  "no_account": "No account? Sign up",
+  "have_account": "Already have an account? Sign in",
+  "error_invalid": "Invalid email or password",
+  "error_exists": "An account with this email already exists",
+  "error_generic": "Something went wrong. Please try again.",
+  "success_register": "Account created successfully!",
+  "close": "Close",
+  "or": "or"
+},
+"reviews": {
+  "title": "What our users say",
+  "subtitle": "Real reviews from people who have used Sympto+",
+  "write_review": "Write a review",
+  "your_name": "Your name",
+  "your_comment": "How did Sympto+ help you?",
+  "rating": "Rating",
+  "submit": "Submit review",
+  "thank_you": "Thank you for your review!",
+  "login_required": "Sign in to leave a review",
+  "verified": "Verified",
+  "see_all": "See all reviews",
+  "based_on": "Based on",
+  "reviews_word": "reviews"
+}
 }

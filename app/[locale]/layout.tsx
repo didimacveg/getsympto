@@ -6,6 +6,8 @@ import { getMessages } from 'next-intl/server';
 import Script from 'next/script';
 import '../globals.css';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { AuthProvider } from '@/contexts/AuthContext';
+import AuthButton from '@/components/AuthButton';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
@@ -39,19 +41,22 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider messages={messages}>
-          {children}
-          <footer className="border-t border-slate-100 bg-white py-6 mt-auto">
-            <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-              <span>{'© 2026 Sympto+. Todos los derechos reservados.'}</span>
-              <div className="flex items-center gap-4">
-                <LanguageSwitcher />
-                <a href="https://www.iubenda.com/privacy-policy/95390448" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Privacidad">Privacidad</a>
-                <a href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Cookies">Cookies</a>
+        <AuthProvider>
+          <NextIntlClientProvider messages={messages}>
+            {children}
+            <footer className="border-t border-slate-100 bg-white py-6 mt-auto">
+              <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+                <span>{'© 2026 Sympto+. Todos los derechos reservados.'}</span>
+                <div className="flex items-center gap-4">
+                  <AuthButton />
+                  <LanguageSwitcher />
+                  <a href="https://www.iubenda.com/privacy-policy/95390448" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Privacidad">Privacidad</a>
+                  <a href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Cookies">Cookies</a>
+                </div>
               </div>
-            </div>
-          </footer>
-        </NextIntlClientProvider>
+            </footer>
+          </NextIntlClientProvider>
+        </AuthProvider>
         <Script
           id="iubenda"
           strategy="lazyOnload"
