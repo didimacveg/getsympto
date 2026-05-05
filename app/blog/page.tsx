@@ -51,9 +51,27 @@ const ARTICLES = [
   },
 ];
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Guías de síntomas corporales | Sympto+',
+  description: 'Información general sobre síntomas corporales frecuentes.',
+  url: 'https://getsympto.app/blog',
+  inLanguage: 'es',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Sympto+',
+    url: 'https://getsympto.app',
+  },
+};
+
 export default function BlogPage() {
   return (
     <main className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-4xl mx-auto px-4 py-12">
 
         <div className="flex items-center justify-between mb-8">
@@ -113,7 +131,6 @@ export default function BlogPage() {
             Analizar mi síntoma →
           </Link>
         </div>
-
       </div>
     </main>
   );

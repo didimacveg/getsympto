@@ -201,6 +201,15 @@ Si el dolor es muscular, aparece con el movimiento del brazo y no se acompaña d
   },
 };
 
+const RELATED_ARTICLES: Record<string, string[]> = {
+  'dolor-pecho-al-respirar': ['dolor-hombro-brazo-izquierdo', 'dolor-espalda-baja-lumbar'],
+  'dolor-cabeza-detras-ojos': ['dolor-hombro-brazo-izquierdo', 'dolor-pecho-al-respirar'],
+  'dolor-lado-derecho-abdomen': ['dolor-espalda-baja-lumbar', 'dolor-pecho-al-respirar'],
+  'dolor-espalda-baja-lumbar': ['dolor-hombro-brazo-izquierdo', 'dolor-lado-derecho-abdomen'],
+  'dolor-rodilla-al-bajar-escaleras': ['dolor-espalda-baja-lumbar', 'dolor-hombro-brazo-izquierdo'],
+  'dolor-hombro-brazo-izquierdo': ['dolor-pecho-al-respirar', 'dolor-espalda-baja-lumbar'],
+};
+
 type Props = {
   params: Promise<{ slug: string }>;
 };
@@ -249,8 +258,40 @@ export default async function ArticlePage({ params }: Props) {
   const article = ARTICLES[slug];
   if (!article) notFound();
 
+  const relatedSlugs = RELATED_ARTICLES[slug] || [];
+  const relatedArticles = relatedSlugs.map(s => ({ slug: s, ...ARTICLES[s] })).filter(Boolean);
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'MedicalWebPage',
+    name: article.title,
+    description: article.description,
+    url: `https://getsympto.app/blog/${slug}`,
+    inLanguage: 'es',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Sympto+',
+      url: 'https://getsympto.app',
+    },
+    about: {
+      '@type': 'MedicalCondition',
+      name: article.zone,
+    },
+    audience: { '@type': 'Patient' },
+    dateModified: new Date().toISOString(),
+    publisher: {
+      '@type': 'Organization',
+      name: 'Sympto+',
+      url: 'https://getsympto.app',
+    },
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-3xl mx-auto px-4 py-12">
 
         <div className="flex items-center justify-between mb-6">
@@ -279,6 +320,34 @@ export default async function ArticlePage({ params }: Props) {
           </div>
         </div>
 
+        {/* Artículos relacionados */}
+        {relatedArticles.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+              Guías relacionadas
+            </h3>
+            <div className="grid gap-3">
+              {relatedArticles.map((related) => (
+                <Link
+                  key={related.slug}
+                  href={`/blog/${related.slug}`}
+                  className="bg-white rounded-xl p-4 border border-slate-100 hover:border-blue-200 transition-all group flex items-center justify-between"
+                >
+                  <div>
+                    <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium mr-2">
+                      {related.zone}
+                    </span>
+                    <span className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">
+                      {related.title}
+                    </span>
+                  </div>
+                  <span className="text-slate-300 group-hover:text-blue-400 transition-colors">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-8 bg-blue-50 border border-blue-100 rounded-2xl p-6">
           <h3 className="font-semibold text-slate-800 mb-2">¿Tienes este síntoma?</h3>
           <p className="text-sm text-slate-600 mb-4">
@@ -291,10 +360,7 @@ export default async function ArticlePage({ params }: Props) {
             >
               Analizar mi síntoma →
             </Link>
-            <Link
-              href="/blog"
-              className="text-sm text-slate-500 hover:text-blue-600 transition-colors"
-            >
+            <Link href="/blog" className="text-sm text-slate-500 hover:text-blue-600 transition-colors">
               Ver más guías
             </Link>
           </div>
