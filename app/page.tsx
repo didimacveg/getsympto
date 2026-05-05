@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import BodyMap from '@/components/BodyMap';
 import SymptomForm from '@/components/SymptomForm';
 import Report from '@/components/Report';
@@ -47,6 +48,17 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
+
+        {/* Navbar simple */}
+        <nav className="flex items-center justify-between mb-8">
+          <span className="font-bold text-slate-800 text-lg">Sympto+</span>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm"
+          >
+            📋 Guías de síntomas
+          </Link>
+        </nav>
 
         <header className="text-center mb-10">
           <h1 className="text-3xl font-bold text-slate-800">¿Qué zona te molesta?</h1>
@@ -101,12 +113,19 @@ export default function Home() {
                 <div className="mt-4 pt-4 border-t border-slate-100">
                   <p className="text-xs text-slate-400">100% anónimo · Sin registro · Orientación general, no diagnóstico</p>
                 </div>
+                <div className="mt-4">
+                  <Link
+                    href="/blog"
+                    className="text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                  >
+                    📋 Ver guías informativas de síntomas →
+                  </Link>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Sección SEO — visible para Google, útil para el usuario */}
         <section className="mt-16 border-t border-slate-200 pt-10">
           <h2 className="text-xl font-semibold text-slate-700 text-center mb-2">
             Consultas frecuentes por zona corporal
@@ -124,7 +143,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="mt-12 text-center text-xs text-slate-400 pb-6">
           <p>Sympto+ · Orientación informativa de síntomas corporales</p>
           <p className="mt-1">Esta plataforma no proporciona diagnósticos médicos. Ante cualquier duda, consulta con tu médico.</p>

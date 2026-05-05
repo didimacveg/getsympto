@@ -55,6 +55,14 @@ export default function BlogPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 py-12">
+
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-blue-600 transition-colors">
+            ← Volver a inicio
+          </Link>
+          <span className="text-xs text-slate-400">Sympto+</span>
+        </div>
+
         <header className="mb-10">
           <p className="text-blue-600 text-sm font-medium mb-2">Guías informativas</p>
           <h1 className="text-3xl font-bold text-slate-800 mb-3">
@@ -96,6 +104,16 @@ export default function BlogPage() {
           ⚠️ Los artículos de este blog son informativos y educativos. No constituyen diagnóstico médico.
           Ante cualquier síntoma, consulta con tu médico.
         </div>
+
+        <div className="mt-6 text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition"
+          >
+            Analizar mi síntoma →
+          </Link>
+        </div>
+
       </div>
     </main>
   );

@@ -253,9 +253,14 @@ export default async function ArticlePage({ params }: Props) {
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto px-4 py-12">
 
-        <Link href="/blog" className="text-blue-600 text-sm hover:underline mb-6 inline-block">
-          ← Volver a guías
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link href="/blog" className="text-blue-600 text-sm hover:underline">
+            ← Volver a guías
+          </Link>
+          <Link href="/" className="text-sm text-slate-500 hover:text-blue-600 transition-colors">
+            Inicio
+          </Link>
+        </div>
 
         <header className="mb-8">
           <div className="flex items-center gap-2 mb-3">
@@ -279,12 +284,20 @@ export default async function ArticlePage({ params }: Props) {
           <p className="text-sm text-slate-600 mb-4">
             Usa nuestro orientador de síntomas para obtener información personalizada sobre tu caso concreto.
           </p>
-          <Link
-            href="/"
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition inline-block"
-          >
-            Analizar mi síntoma →
-          </Link>
+          <div className="flex items-center gap-4 flex-wrap">
+            <Link
+              href="/"
+              className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition inline-block"
+            >
+              Analizar mi síntoma →
+            </Link>
+            <Link
+              href="/blog"
+              className="text-sm text-slate-500 hover:text-blue-600 transition-colors"
+            >
+              Ver más guías
+            </Link>
+          </div>
         </div>
 
         <div className="mt-6 text-xs text-slate-400 text-center">
