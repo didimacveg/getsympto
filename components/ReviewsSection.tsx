@@ -150,7 +150,7 @@ export default function ReviewsSection() {
                 value={comment}
                 onChange={e => setComment(e.target.value)}
                 rows={3}
-                className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:ring-2 focus:ring-blue-400 outline-none"
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-900 resize-none focus:ring-2 focus:ring-blue-400 outline-none"
                 placeholder="..."
               />
             </div>
