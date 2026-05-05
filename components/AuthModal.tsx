@@ -46,45 +46,50 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const getErrorMessage = (msg: string) => {
-    if (!msg) return t('error_generic');
-    if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('registered')) return t('error_exists');
-    if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credentials')) return t('error_invalid');
-    if (msg.toLowerCase().includes('password') && msg.toLowerCase().includes('6')) return 'La contraseña debe tener al menos 6 caracteres.';
-    if (msg.toLowerCase().includes('email')) return 'El formato del email no es válido.';
-    return msg;
+  const getLoginError = (msg: string): string => {
+    const m = msg.toLowerCase();
+    if (m.includes('invalid') || m.includes('credentials') || m.includes('wrong')) return t('error_invalid');
+    if (m.includes('rate') || m.includes('limit')) return 'Demasiados intentos. Espera unos minutos.';
+    return t('error_generic');
+  };
+
+  const getRegisterError = (msg: string): string => {
+    const m = msg.toLowerCase();
+    if (m.includes('already') || m.includes('registered')) return t('error_exists');
+    if (m.includes('password') && (m.includes('6') || m.includes('weak') || m.includes('strong'))) {
+      return 'La contraseña debe tener al menos 6 caracteres.';
+    }
+    if (m.includes('email') || m.includes('format') || m.includes('validate')) {
+      return 'El formato del email no es válido.';
+    }
+    if (m.includes('rate') || m.includes('limit')) return 'Demasiados intentos. Espera unos minutos.';
+    if (m.includes('captcha')) return 'Error de verificación. Contacta al soporte.';
+    if (m.includes('disabled') || m.includes('not allowed')) return 'El registro está desactivado temporalmente.';
+    return msg.length > 0 && msg.length < 120 ? msg : t('error_generic');
   };
 
   const handleSubmit = async () => {
     setError('');
     setSuccess('');
 
-    if (!email.trim() || !password.trim()) {
-      setError('Rellena todos los campos.');
-      return;
-    }
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-    if (mode === 'register' && !name.trim()) {
-      setError('Introduce tu nombre.');
-      return;
-    }
+    if (!email.trim()) { setError('Introduce tu email.'); return; }
+    if (!password.trim()) { setError('Introduce tu contraseña.'); return; }
+    if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres.'); return; }
+    if (mode === 'register' && !name.trim()) { setError('Introduce tu nombre.'); return; }
 
     setLoading(true);
 
     if (mode === 'login') {
       const { error } = await signIn(email, password);
       if (error) {
-        setError(getErrorMessage(error));
+        setError(getLoginError(error));
       } else {
         onClose();
       }
     } else {
       const { error } = await signUp(email, password, name);
       if (error) {
-        setError(getErrorMessage(error));
+        setError(getRegisterError(error));
       } else {
         setSuccess(t('success_register'));
         setTimeout(onClose, 2000);
@@ -96,7 +101,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const handleGoogle = async () => {
     setLoading(true);
     await signInWithGoogle();
-    setLoading(false);
+    // No setLoading(false) — la página se recarga tras el OAuth
   };
 
   const switchMode = (newMode: 'login' | 'register') => {
@@ -114,7 +119,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-slate-800">
             {mode === 'login' ? t('login_title') : t('register_title')}
@@ -122,7 +126,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">✕</button>
         </div>
 
-        {/* Tabs */}
         <div className="flex bg-slate-100 rounded-xl p-1 mb-6">
           <button
             onClick={() => switchMode('login')}
@@ -138,7 +141,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           </button>
         </div>
 
-        {/* Google button */}
         <button
           onClick={handleGoogle}
           disabled={loading}
@@ -148,14 +150,12 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           {t('google')}
         </button>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-px bg-slate-200" />
           <span className="text-xs text-slate-400">{t('or')}</span>
           <div className="flex-1 h-px bg-slate-200" />
         </div>
 
-        {/* Form */}
         <div className="space-y-4">
           {mode === 'register' && (
             <div>
@@ -227,8 +227,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           </button>
         </div>
 
-        {/* Switch mode */}
-        <p className="mt-4 text-center text-xs text-slate-400">
+        <p className="mt-4 text-center text-xs">
           {mode === 'login'
             ? <button onClick={() => switchMode('register')} className="text-blue-500 hover:underline">{t('no_account')}</button>
             : <button onClick={() => switchMode('login')} className="text-blue-500 hover:underline">{t('have_account')}</button>
