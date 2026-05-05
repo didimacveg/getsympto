@@ -38,7 +38,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Solicitud inválida.' }, { status: 400 });
   }
 
-  const { zone, description, duration, intensity } = body;
+  const { zone, description, duration, intensity, locale = 'es' } = body;
 
   // Validación y sanitización
   const validation = validateInput({ zone, description });
@@ -55,7 +55,7 @@ export async function POST(request) {
       system: SYSTEM_PROMPT,
       messages: [{
         role: 'user',
-        content: buildUserPrompt({ zone, description: validation.description, duration, intensity })
+        content: buildUserPrompt({ zone, description: validation.description, duration, intensity, locale })
       }],
     });
 

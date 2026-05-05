@@ -1,42 +1,43 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 const ALL_ZONES = {
-  cabeza: { label: 'Cabeza', emoji: '🧠' },
-  cuello: { label: 'Cuello', emoji: '🔵' },
-  hombro_izq: { label: 'Hombro izquierdo', emoji: '💪' },
-  hombro_der: { label: 'Hombro derecho', emoji: '💪' },
-  pecho: { label: 'Pecho / Tórax', emoji: '❤️' },
-  abdomen: { label: 'Abdomen', emoji: '🫃' },
-  pelvis: { label: 'Pelvis / Cadera', emoji: '🦴' },
-  brazo_izq: { label: 'Brazo izquierdo', emoji: '💪' },
-  brazo_der: { label: 'Brazo derecho', emoji: '💪' },
-  antebrazo_izq: { label: 'Antebrazo izquierdo', emoji: '🦾' },
-  antebrazo_der: { label: 'Antebrazo derecho', emoji: '🦾' },
-  mano_izq: { label: 'Mano izquierda', emoji: '✋' },
-  mano_der: { label: 'Mano derecha', emoji: '✋' },
-  muslo_izq: { label: 'Muslo izquierdo', emoji: '🦵' },
-  muslo_der: { label: 'Muslo derecho', emoji: '🦵' },
-  rodilla_izq: { label: 'Rodilla izquierda', emoji: '🦿' },
-  rodilla_der: { label: 'Rodilla derecha', emoji: '🦿' },
-  pierna_izq: { label: 'Pierna izquierda', emoji: '🦵' },
-  pierna_der: { label: 'Pierna derecha', emoji: '🦵' },
-  pie_izq: { label: 'Pie izquierdo', emoji: '🦶' },
-  pie_der: { label: 'Pie derecho', emoji: '🦶' },
-  espalda_alta: { label: 'Espalda alta', emoji: '🔙' },
-  espalda_media: { label: 'Espalda media', emoji: '🔙' },
-  lumbar: { label: 'Zona lumbar', emoji: '🔙' },
-  gluteo_izq: { label: 'Glúteo izquierdo', emoji: '🔙' },
-  gluteo_der: { label: 'Glúteo derecho', emoji: '🔙' },
-  gemelo_izq: { label: 'Gemelo izquierdo', emoji: '🦵' },
-  gemelo_der: { label: 'Gemelo derecho', emoji: '🦵' },
+  cabeza: { emoji: '🧠' },
+  cuello: { emoji: '🔵' },
+  hombro_izq: { emoji: '💪' },
+  hombro_der: { emoji: '💪' },
+  pecho: { emoji: '❤️' },
+  abdomen: { emoji: '🫃' },
+  pelvis: { emoji: '🦴' },
+  brazo_izq: { emoji: '💪' },
+  brazo_der: { emoji: '💪' },
+  antebrazo_izq: { emoji: '🦾' },
+  antebrazo_der: { emoji: '🦾' },
+  mano_izq: { emoji: '✋' },
+  mano_der: { emoji: '✋' },
+  muslo_izq: { emoji: '🦵' },
+  muslo_der: { emoji: '🦵' },
+  rodilla_izq: { emoji: '🦿' },
+  rodilla_der: { emoji: '🦿' },
+  pierna_izq: { emoji: '🦵' },
+  pierna_der: { emoji: '🦵' },
+  pie_izq: { emoji: '🦶' },
+  pie_der: { emoji: '🦶' },
+  espalda_alta: { emoji: '🔙' },
+  espalda_media: { emoji: '🔙' },
+  lumbar: { emoji: '🔙' },
+  gluteo_izq: { emoji: '🔙' },
+  gluteo_der: { emoji: '🔙' },
+  gemelo_izq: { emoji: '🦵' },
+  gemelo_der: { emoji: '🦵' },
 };
 
 const FRONT_PATHS = {
   cabeza: 'M 50 36 m -30 0 a 30 34 0 1 0 60 0 a 30 34 0 1 0 -60 0',
   cuello: 'M 36 68 C 30 72 28 80 28 100 C 36 103 50 105 50 105 C 50 105 64 103 72 100 C 72 80 70 72 64 68 Z',
   hombro_izq: 'M 72 98 C 80 98 92 102 98 112 C 102 120 100 132 92 138 L 80 140 L 80 102 Z',
-hombro_der: 'M 28 98 C 20 98 8 102 2 112 C -2 120 0 132 8 138 L 20 140 L 20 102 Z',
+  hombro_der: 'M 28 98 C 20 98 8 102 2 112 C -2 120 0 132 8 138 L 20 140 L 20 102 Z',
   pecho: 'M 20 100 L 80 100 L 82 142 L 18 142 Z',
   abdomen: 'M 18 142 L 82 142 L 80 195 L 20 195 Z',
   pelvis: 'M 20 195 L 80 195 C 83 206 83 215 79 222 L 21 222 C 17 215 17 206 20 195 Z',
@@ -158,6 +159,7 @@ function BodyView({ paths, dividers, selectedZone, onZoneSelect, onHover, isBack
 
 export default function BodyMap({ onZoneSelect, selectedZone }) {
   const [hovered, setHovered] = useState(null);
+  const t = useTranslations('zones');
   const activeZone = hovered || selectedZone;
 
   return (
@@ -190,7 +192,7 @@ export default function BodyMap({ onZoneSelect, selectedZone }) {
       <div className="mt-3 h-8">
         {activeZone && ALL_ZONES[activeZone] && (
           <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-            {ALL_ZONES[activeZone].emoji} {ALL_ZONES[activeZone].label}
+            {ALL_ZONES[activeZone].emoji} {t(activeZone)}
           </span>
         )}
       </div>
