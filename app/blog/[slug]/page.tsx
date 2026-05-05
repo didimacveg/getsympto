@@ -262,29 +262,34 @@ export default async function ArticlePage({ params }: Props) {
   const relatedArticles = relatedSlugs.map(s => ({ slug: s, ...ARTICLES[s] })).filter(Boolean);
 
   const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'MedicalWebPage',
-    name: article.title,
-    description: article.description,
-    url: `https://getsympto.app/blog/${slug}`,
-    inLanguage: 'es',
-    isPartOf: {
-      '@type': 'WebSite',
-      name: 'Sympto+',
-      url: 'https://getsympto.app',
-    },
-    about: {
-      '@type': 'MedicalCondition',
-      name: article.zone,
-    },
-    audience: { '@type': 'Patient' },
-    dateModified: new Date().toISOString(),
-    publisher: {
-      '@type': 'Organization',
-      name: 'Sympto+',
-      url: 'https://getsympto.app',
-    },
-  };
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: article.title,
+  description: article.description,
+  url: `https://getsympto.app/blog/${slug}`,
+  inLanguage: 'es',
+  dateModified: new Date().toISOString(),
+  datePublished: '2026-05-05',
+  author: {
+    '@type': 'Organization',
+    name: 'Sympto+',
+    url: 'https://getsympto.app',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Sympto+',
+    url: 'https://getsympto.app',
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': `https://getsympto.app/blog/${slug}`,
+  },
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Sympto+',
+    url: 'https://getsympto.app',
+  },
+};
 
   return (
     <main className="min-h-screen bg-slate-50">
