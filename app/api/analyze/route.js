@@ -11,7 +11,7 @@ const requestLog = new Map();
 function isRateLimited(ip) {
   const now = Date.now();
   const windowMs = 60 * 60 * 1000; // 1 hora
-  const maxRequests = 10;
+  const maxRequests = 5;
   
   const history = (requestLog.get(ip) || []).filter(t => now - t < windowMs);
   if (history.length >= maxRequests) return true;
