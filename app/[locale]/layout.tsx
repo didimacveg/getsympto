@@ -11,22 +11,46 @@ import AuthButton from '@/components/AuthButton';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'Sympto+ | Orientación de síntomas corporales',
-  description: 'Selecciona la zona de tu cuerpo que te molesta, describe tu síntoma y recibe orientación informativa general. No es diagnóstico médico.',
-  keywords: 'síntomas, dolor corporal, orientación médica, qué me duele, síntomas corporales, symptoms, body pain',
-  openGraph: {
+const META = {
+  es: {
     title: 'Sympto+ | ¿Qué zona te molesta?',
-    description: 'Orientación informativa sobre síntomas corporales.',
-    url: 'https://getsympto.app',
-    siteName: 'Sympto+',
-    type: 'website',
-    images: [{ url: 'https://getsympto.app/opengraph-image.png', width: 1200, height: 630, alt: 'Sympto+' }],
+    description: 'Selecciona la zona del cuerpo, describe tu síntoma y recibe orientación informativa general. No es diagnóstico médico.',
   },
-  robots: { index: true, follow: true },
-  alternates: { canonical: 'https://getsympto.app' },
-  icons: { icon: '/logo.svg', apple: '/logo.svg' },
+  en: {
+    title: 'Sympto+ | Which area bothers you?',
+    description: 'Select the body area, describe your symptom and receive general informational guidance. Not a medical diagnosis.',
+  },
+  zh: {
+    title: 'Sympto+ | 哪个部位让您不舒服？',
+    description: '选择身体部位，描述您的症状，获取一般性信息指导。这不是医学诊断。',
+  },
+  ru: {
+    title: 'Sympto+ | Какая зона вас беспокоит?',
+    description: 'Выберите зону тела, опишите симптом и получите общую информационную рекомендацию. Это не медицинский диагноз.',
+  },
 };
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const meta = META[locale as keyof typeof META] || META.es;
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    keywords: 'síntomas, dolor corporal, orientación médica, qué me duele, síntomas corporales, symptoms, body pain, symptom checker',
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+      url: `https://getsympto.app/${locale}`,
+      siteName: 'Sympto+',
+      type: 'website',
+      images: [{ url: 'https://getsympto.app/opengraph-image.png', width: 1200, height: 630, alt: 'Sympto+' }],
+    },
+    robots: { index: true, follow: true },
+    alternates: { canonical: `https://getsympto.app/${locale}` },
+    icons: { icon: '/logo.svg', apple: '/logo.svg' },
+  };
+}
 
 export default async function LocaleLayout({
   children,
@@ -50,8 +74,20 @@ export default async function LocaleLayout({
                 <div className="flex items-center gap-4">
                   <AuthButton />
                   <LanguageSwitcher />
-                  <a href="https://www.iubenda.com/privacy-policy/95390448" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Privacidad">Privacidad</a>
-                  <a href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Cookies">Cookies</a>
+                  
+                    href="https://www.iubenda.com/privacy-policy/95390448"
+                    className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors"
+                    title="Política de Privacidad"
+                  >
+                    Privacidad
+                  </a>
+                  
+                    href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy"
+                    className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors"
+                    title="Política de Cookies"
+                  >
+                    Cookies
+                  </a>
                 </div>
               </div>
             </footer>
