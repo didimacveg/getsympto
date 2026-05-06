@@ -73,7 +73,6 @@ export default function ReviewsSection() {
     setLoading(false);
   };
 
-  // Devuelve el comentario en el idioma del usuario si existe, si no el original
   const getComment = (review: Review): string => {
     if (review.translations && review.translations[locale]) {
       return review.translations[locale];
@@ -84,7 +83,24 @@ export default function ReviewsSection() {
   const submitReview = async () => {
     if (!user || !comment.trim()) return;
     setSubmitting(true);
+
     const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario';
+
+    // Traducir automáticamente a los 4 idiomas
+    let translations: Record<string, string> = { [locale]: comment };
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: comment, sourceLocale: locale }),
+      });
+      if (res.ok) {
+        translations = await res.json();
+      }
+    } catch {
+      console.warn('Translation failed, saving original only');
+    }
+
     await supabase.from('reviews').insert({
       user_id: user.id,
       name,
@@ -92,8 +108,9 @@ export default function ReviewsSection() {
       comment,
       locale,
       verified: true,
-      translations: { [locale]: comment },
+      translations,
     });
+
     setSubmitted(true);
     setComment('');
     setRating(5);
