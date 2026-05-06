@@ -52,6 +52,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
+const PrivacyLink = () => (
+  <a href="https://www.iubenda.com/privacy-policy/95390448" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Privacidad">Privacidad</a>
+);
+
+const CookiesLink = () => (
+  <a href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy" className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors" title="Política de Cookies">Cookies</a>
+);
+
 export default async function LocaleLayout({
   children,
   params,
@@ -74,20 +82,8 @@ export default async function LocaleLayout({
                 <div className="flex items-center gap-4">
                   <AuthButton />
                   <LanguageSwitcher />
-                  
-                    href="https://www.iubenda.com/privacy-policy/95390448"
-                    className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors"
-                    title="Política de Privacidad"
-                  >
-                    Privacidad
-                  </a>
-                  
-                   href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy"
-                    className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors"
-                    title="Política de Cookies"
-                  >
-                    Cookies
-                  </a>
+                  <PrivacyLink />
+                  <CookiesLink />
                 </div>
               </div>
             </footer>
