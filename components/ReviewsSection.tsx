@@ -62,12 +62,33 @@ export default function ReviewsSection() {
   }, [locale]);
 
   const fetchReviews = async () => {
-    const { data } = await supabase
+    setLoading(true);
+
+    // Primero trae reseñas del idioma actual
+    const { data: localeReviews } = await supabase
       .from('reviews')
       .select('*')
+      .eq('locale', locale)
       .order('created_at', { ascending: false })
-      .limit(20);
-    setReviews(data || []);
+      .limit(6);
+
+    const localeCount = localeReviews?.length || 0;
+
+    // Si hay menos de 3 en el idioma actual, completa con otros idiomas
+    if (localeCount < 3) {
+      const remaining = 6 - localeCount;
+      const { data: otherReviews } = await supabase
+        .from('reviews')
+        .select('*')
+        .neq('locale', locale)
+        .order('created_at', { ascending: false })
+        .limit(remaining);
+
+      setReviews([...(localeReviews || []), ...(otherReviews || [])]);
+    } else {
+      setReviews(localeReviews || []);
+    }
+
     setLoading(false);
   };
 
@@ -109,10 +130,11 @@ export default function ReviewsSection() {
         </div>
       </div>
 
-      {/* Grid de reseñas */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => <div key={i} className="bg-white rounded-2xl p-6 h-40 animate-pulse border border-slate-100" />)}
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-2xl p-6 h-40 animate-pulse border border-slate-100" />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -133,7 +155,6 @@ export default function ReviewsSection() {
         </div>
       )}
 
-      {/* CTA para dejar reseña */}
       <div className="mt-8 text-center">
         {submitted ? (
           <p className="text-green-600 font-medium text-sm">{t('thank_you')}</p>
@@ -162,7 +183,10 @@ export default function ReviewsSection() {
               >
                 {submitting ? '...' : t('submit')}
               </button>
-              <button onClick={() => setShowForm(false)} className="text-sm text-slate-400 hover:text-slate-600">
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-sm text-slate-400 hover:text-slate-600"
+              >
                 Cancelar
               </button>
             </div>
