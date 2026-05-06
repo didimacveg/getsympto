@@ -13,6 +13,7 @@ interface Review {
   locale: string;
   verified: boolean;
   created_at: string;
+  translations: Record<string, string>;
 }
 
 function Stars({ rating }: { rating: number }) {
@@ -63,33 +64,21 @@ export default function ReviewsSection() {
 
   const fetchReviews = async () => {
     setLoading(true);
-
-    // Primero trae reseñas del idioma actual
-    const { data: localeReviews } = await supabase
+    const { data } = await supabase
       .from('reviews')
       .select('*')
-      .eq('locale', locale)
       .order('created_at', { ascending: false })
-      .limit(6);
-
-    const localeCount = localeReviews?.length || 0;
-
-    // Si hay menos de 3 en el idioma actual, completa con otros idiomas
-    if (localeCount < 3) {
-      const remaining = 6 - localeCount;
-      const { data: otherReviews } = await supabase
-        .from('reviews')
-        .select('*')
-        .neq('locale', locale)
-        .order('created_at', { ascending: false })
-        .limit(remaining);
-
-      setReviews([...(localeReviews || []), ...(otherReviews || [])]);
-    } else {
-      setReviews(localeReviews || []);
-    }
-
+      .limit(20);
+    setReviews(data || []);
     setLoading(false);
+  };
+
+  // Devuelve el comentario en el idioma del usuario si existe, si no el original
+  const getComment = (review: Review): string => {
+    if (review.translations && review.translations[locale]) {
+      return review.translations[locale];
+    }
+    return review.comment;
   };
 
   const submitReview = async () => {
@@ -103,6 +92,7 @@ export default function ReviewsSection() {
       comment,
       locale,
       verified: true,
+      translations: { [locale]: comment },
     });
     setSubmitted(true);
     setComment('');
@@ -149,7 +139,7 @@ export default function ReviewsSection() {
                 </div>
                 <Stars rating={review.rating} />
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">{review.comment}</p>
+              <p className="text-sm text-slate-600 leading-relaxed">{getComment(review)}</p>
             </div>
           ))}
         </div>
@@ -183,10 +173,7 @@ export default function ReviewsSection() {
               >
                 {submitting ? '...' : t('submit')}
               </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-sm text-slate-400 hover:text-slate-600"
-              >
+              <button onClick={() => setShowForm(false)} className="text-sm text-slate-400 hover:text-slate-600">
                 Cancelar
               </button>
             </div>
