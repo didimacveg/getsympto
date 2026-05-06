@@ -82,7 +82,7 @@ export default async function LocaleLayout({
                     Privacidad
                   </a>
                   
-                    href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy"
+                   href="https://www.iubenda.com/privacy-policy/95390448/cookie-policy"
                     className="iubenda-white iubenda-noiframe iubenda-embed hover:text-slate-600 transition-colors"
                     title="Política de Cookies"
                   >
