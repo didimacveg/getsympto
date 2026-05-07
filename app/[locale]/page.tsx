@@ -7,6 +7,8 @@ import SymptomForm from '@/components/SymptomForm';
 import Report from '@/components/Report';
 import ReviewsSection from '@/components/ReviewsSection';
 import AuthButton from '@/components/AuthButton';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SEO_ZONES_ES = [
   { zona: 'Cabeza', ejemplos: 'dolor de cabeza, migraña, presión en las sienes' },
@@ -54,6 +56,7 @@ const SEO_BY_LOCALE: Record<string, typeof SEO_ZONES_ES> = {
 export default function Home() {
   const t = useTranslations('home');
   const locale = useLocale();
+  const { user } = useAuth();
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,6 +76,18 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
       setReport(data);
+
+      // Guardar consulta si el usuario está autenticado
+      if (user && data.severity) {
+        await supabase.from('user_queries').insert({
+          user_id: user.id,
+          zone: selectedZone,
+          description: symptomData.description,
+          severity: data.severity,
+          action: data.action_recommendation?.primary || null,
+          locale,
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error');
     } finally {
@@ -98,16 +113,26 @@ export default function Home() {
           </div>
         </nav>
 
+        {/* Hero mejorado */}
         <header className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-slate-800">{t('title')}</h1>
-          <p className="text-slate-500 mt-2 text-sm">
-            {t('subtitle')}{' '}
-            <span className="font-medium text-slate-600">{t('no_diagnosis')}</span>
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium mb-4">
+            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+            Orientación informativa · No es diagnóstico médico
+          </div>
+          <h1 className="text-4xl font-bold text-slate-900 mb-3 leading-tight">
+            ¿Qué zona{' '}
+            <span className="text-blue-600">te molesta</span>
+            ?
+          </h1>
+          <p className="text-slate-500 text-base max-w-xl mx-auto">
+            {t('subtitle')}
           </p>
         </header>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 text-center">
-          {t('disclaimer')} <strong>{t('emergency_number')}</strong>.
+        {/* Disclaimer mejorado */}
+        <div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700">
+          <span>⚠️</span>
+          <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -121,20 +146,53 @@ export default function Home() {
             {!report && selectedZone && <SymptomForm zone={selectedZone} onSubmit={handleAnalyze} loading={loading} />}
             {report && <Report data={report} onReset={handleReset} />}
             {!selectedZone && !report && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                <h2 className="font-semibold text-slate-700 mb-3">{t('how_title')}</h2>
-                <div className="space-y-3">
-                  {[t('step1'), t('step2'), t('step3')].map((step, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0">{i + 1}</span>
-                      <p className="text-sm text-slate-600">{step}</p>
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                  <h2 className="font-semibold text-slate-700 mb-4 text-sm uppercase tracking-wide">¿Cómo funciona?</h2>
+                  <div className="space-y-4">
+                    {[
+                      { icon: '👆', step: t('step1'), color: 'bg-blue-50 text-blue-600' },
+                      { icon: '✍️', step: t('step2'), color: 'bg-purple-50 text-purple-600' },
+                      { icon: '⚡', step: t('step3'), color: 'bg-green-50 text-green-600' },
+                    ].map(({ icon, step, color }, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 ${color}`}>
+                          {icon}
+                        </div>
+                        <p className="text-sm text-slate-600 pt-1">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-3">
+                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <span>🔒</span> Anónimo
                     </div>
-                  ))}
+                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <span>⚡</span> Instantáneo
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <span>🌍</span> 4 idiomas
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-xs text-slate-400">{t('anonymous')}</p>
-                </div>
-                <div className="mt-4">
+                {user && (
+                  <Link
+                    href={`/${locale}/perfil`}
+                    className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-2xl p-4 hover:border-blue-200 transition group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold">
+                        {(user.user_metadata?.name || user.email || 'U').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">Mi historial</p>
+                        <p className="text-xs text-slate-400">Ver consultas guardadas</p>
+                      </div>
+                    </div>
+                    <span className="text-slate-300 group-hover:text-blue-400 transition-colors">→</span>
+                  </Link>
+                )}
+                <div className="mt-2">
                   <Link href={`/${locale}/blog`} className="text-xs text-blue-500 hover:text-blue-700 transition-colors">
                     {t('see_guides')}
                   </Link>
