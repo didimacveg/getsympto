@@ -10,6 +10,11 @@ const supabase = createClient(
 
 const LANGUAGES = { es: 'Spanish', en: 'English', zh: 'Simplified Chinese', ru: 'Russian' };
 const ALL_LOCALES = ['es', 'en', 'zh', 'ru'];
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
+
+// Solo permite 1 ejecución cada 10 minutos para evitar abuso
+let lastRun = 0;
+const MIN_INTERVAL_MS = 10 * 60 * 1000;
 
 async function translateReview(text, sourceLocale) {
   const targets = Object.entries(LANGUAGES)
@@ -19,10 +24,10 @@ async function translateReview(text, sourceLocale) {
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5',
-    max_tokens: 600,
+    max_tokens: 800,
     messages: [{
       role: 'user',
-      content: `Translate this review into the specified languages. Return ONLY valid JSON, no explanation, no markdown.
+      content: `Translate this review. Return ONLY valid JSON.
 
 Original (${LANGUAGES[sourceLocale] || sourceLocale}): "${text}"
 
@@ -37,7 +42,25 @@ JSON format: {${targets}}`,
   return translations;
 }
 
-export async function GET() {
+export async function GET(request) {
+  // 1 — Autenticación con secret token
+  if (!ADMIN_SECRET) {
+    return NextResponse.json({ error: 'Admin secret not configured' }, { status: 500 });
+  }
+
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${ADMIN_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // 2 — Throttle: máx 1 ejecución cada 10 minutos
+  const now = Date.now();
+  if (now - lastRun < MIN_INTERVAL_MS) {
+    const waitSeconds = Math.ceil((MIN_INTERVAL_MS - (now - lastRun)) / 1000);
+    return NextResponse.json({ error: `Too soon. Wait ${waitSeconds}s before retrying.` }, { status: 429 });
+  }
+  lastRun = now;
+
   try {
     const { data: reviews, error } = await supabase
       .from('reviews')
@@ -58,18 +81,15 @@ export async function GET() {
     for (const review of needsTranslation) {
       try {
         const translations = await translateReview(review.comment, review.locale || 'es');
-        await supabase
-          .from('reviews')
-          .update({ translations })
-          .eq('id', review.id);
+        await supabase.from('reviews').update({ translations }).eq('id', review.id);
         results.push({ id: review.id, status: 'ok' });
       } catch (e) {
-        results.push({ id: review.id, status: 'error', error: e.message });
+        results.push({ id: review.id, status: 'error', error: e instanceof Error ? e.message : 'unknown' });
       }
     }
 
     return NextResponse.json({ message: 'Done', translated: results.length, results });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'Unknown error' }, { status: 500 });
   }
 }
