@@ -47,7 +47,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       images: [{ url: 'https://getsympto.app/opengraph-image.png', width: 1200, height: 630, alt: 'Sympto+' }],
     },
     robots: { index: true, follow: true },
-    alternates: { canonical: `https://getsympto.app/${locale}` },
+    alternates: {
+      canonical: `https://getsympto.app/${locale}`,
+      languages: {
+        'es': 'https://getsympto.app/es',
+        'en': 'https://getsympto.app/en',
+        'zh': 'https://getsympto.app/zh',
+        'ru': 'https://getsympto.app/ru',
+        'x-default': 'https://getsympto.app/es',
+      },
+    },
     icons: { icon: '/logo.svg', apple: '/logo.svg' },
   };
 }

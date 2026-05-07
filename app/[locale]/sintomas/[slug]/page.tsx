@@ -21,7 +21,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Sympto+',
       type: 'article',
     },
-    alternates: { canonical: `https://getsympto.app/${locale}/sintomas/${slug}` },
+    alternates: {
+      canonical: `https://getsympto.app/${locale}/sintomas/${slug}`,
+      languages: {
+        'es': `https://getsympto.app/es/sintomas/${slug}`,
+        'en': `https://getsympto.app/en/sintomas/${slug}`,
+        'zh': `https://getsympto.app/zh/sintomas/${slug}`,
+        'ru': `https://getsympto.app/ru/sintomas/${slug}`,
+        'x-default': `https://getsympto.app/es/sintomas/${slug}`,
+      },
+    },
   };
 }
 
@@ -67,9 +76,44 @@ export default async function SymptomPage({ params }: Props) {
     mainEntityOfPage: { '@type': 'WebPage', '@id': `https://getsympto.app/${locale}/sintomas/${slug}` },
   };
 
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: content.redFlags[0] ? `¿Cuándo es urgente el ${content.metaTitle.split(':')[0]}?` : '',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: content.whenToAct,
+        },
+      },
+      ...content.causes.slice(0, 3).map(cause => ({
+        '@type': 'Question',
+        name: `¿Puede el ${content.metaTitle.split(':')[0].toLowerCase()} ser por ${cause.name.toLowerCase()}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: cause.description,
+        },
+      })),
+    ],
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Sympto+', item: `https://getsympto.app/${locale}` },
+      { '@type': 'ListItem', position: 2, name: 'Síntomas', item: `https://getsympto.app/${locale}/sintomas` },
+      { '@type': 'ListItem', position: 3, name: content.metaTitle.split(':')[0], item: `https://getsympto.app/${locale}/sintomas/${slug}` },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <div className="max-w-3xl mx-auto px-4 py-12">
 
         <div className="flex items-center justify-between mb-6">

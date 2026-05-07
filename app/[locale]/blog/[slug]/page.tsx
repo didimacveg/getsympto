@@ -327,7 +327,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!article) return {};
   const title = locale === 'en' ? article.title_en : article.title_es;
   const desc = locale === 'en' ? article.description_en : article.description_es;
-  return { title: `${title} | Sympto+`, description: desc };
+  return {
+    title: `${title} | Sympto+`,
+    description: desc,
+    alternates: {
+      canonical: `https://getsympto.app/${locale}/blog/${slug}`,
+      languages: {
+        'es': `https://getsympto.app/es/blog/${slug}`,
+        'en': `https://getsympto.app/en/blog/${slug}`,
+        'zh': `https://getsympto.app/zh/blog/${slug}`,
+        'ru': `https://getsympto.app/ru/blog/${slug}`,
+        'x-default': `https://getsympto.app/es/blog/${slug}`,
+      },
+    },
+  };
 }
 
 export function generateStaticParams() {
