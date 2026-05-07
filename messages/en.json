@@ -19,7 +19,13 @@
     "seo_title": "Frequent queries by body area",
     "seo_subtitle": "Select any area on the map to get guidance on your symptoms",
     "footer_copy": "Sympto+ · Informational symptom guidance",
-    "footer_disclaimer": "This platform does not provide medical diagnoses. If in doubt, consult your doctor."
+    "footer_disclaimer": "This platform does not provide medical diagnoses. If in doubt, consult your doctor.",
+    "badge_text": "Informational guidance · Not a medical diagnosis",
+    "feature_anonymous": "Anonymous",
+    "feature_instant": "Instant",
+    "feature_languages": "4 languages",
+    "my_history": "My history",
+    "view_saved_queries": "View saved queries"
   },
   "zones": {
     "cabeza": "Head",
