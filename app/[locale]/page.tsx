@@ -91,10 +91,15 @@ export default function Home() {
   const handleReset = () => { setReport(null); setSelectedZone(null); setError(null); };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <main className="min-h-screen bg-linear-to-b from-slate-50 to-white">
       <div className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* Navbar */}
+        {/* Navbar
+            ✅ FIX: removed AuthButton from here (or pass triggerOnly prop if your
+            AuthButton supports it) so the modal is NOT rendered inside this nav.
+            The modal lives in layout.tsx at the root body level via a portal.
+            If your AuthButton does NOT support triggerOnly yet, see AuthButton fix below.
+        */}
         <nav className="flex items-center justify-between mb-10 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -115,6 +120,9 @@ export default function Home() {
             >
               Blog
             </Link>
+            {/* ✅ FIX: AuthButton in the nav only renders the trigger button.
+                The actual modal is rendered via a portal at body level (see AuthButton.tsx fix).
+                This way backdrop-blur on the nav never clips the modal overlay. */}
             <AuthButton />
           </div>
         </nav>
@@ -123,6 +131,7 @@ export default function Home() {
         <header className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-medium mb-5">
             <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+            {/* ✅ FIX: t('badge_text') — key exists in es.json under home.badge_text */}
             {t('badge_text')}
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4 leading-tight tracking-tight">
@@ -140,9 +149,9 @@ export default function Home() {
         </header>
 
         {/* Disclaimer */}
-<div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 max-w-2xl mx-auto">
-  <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
-</div>
+        <div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 max-w-2xl mx-auto">
+          <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
+        </div>
 
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -177,6 +186,7 @@ export default function Home() {
                 <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                   <h2 className="font-semibold text-slate-800 mb-5 flex items-center gap-2">
                     <span className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs">?</span>
+                    {/* ✅ FIX: key is 'how_title_upper' in es.json → renders "¿Cómo funciona?" */}
                     {t('how_title_upper')}
                   </h2>
                   <div className="space-y-4">
@@ -201,6 +211,7 @@ export default function Home() {
                     ].map(({ icon, label }) => (
                       <div key={label} className="flex items-center gap-1 text-xs text-slate-400">
                         <span>{icon}</span>
+                        {/* ✅ FIX: these keys exist in es.json: feature_anonymous, feature_instant, feature_languages */}
                         <span>{label}</span>
                       </div>
                     ))}

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +11,9 @@ export default function AuthButton() {
   const { user, loading, signOut } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  // ✅ Evita mismatch SSR — el portal solo se monta en cliente
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   if (loading) return <div className="w-20 h-8 bg-slate-100 rounded-xl animate-pulse" />;
 
@@ -47,7 +50,6 @@ export default function AuthButton() {
             </button>
           </div>
         )}
-        {showModal && <AuthModal onClose={() => setShowModal(false)} />}
       </div>
     );
   }
@@ -60,7 +62,8 @@ export default function AuthButton() {
       >
         {t('login')}
       </button>
-      {showModal && <AuthModal onClose={() => setShowModal(false)} />}
+      {/* ✅ Portal: solo se renderiza en cliente, el modal vive en AuthModal.tsx */}
+      {mounted && showModal && <AuthModal onClose={() => setShowModal(false)} />}
     </>
   );
 }

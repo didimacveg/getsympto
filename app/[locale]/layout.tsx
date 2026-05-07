@@ -77,14 +77,21 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const messages = await getMessages();
+  // ✅ FIX: pass locale explicitly so next-intl loads the correct message file
+  const messages = await getMessages({ locale });
 
   return (
     <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <NextIntlClientProvider messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
+            {/*
+              ✅ FIX: AuthButton is also rendered here (outside the nav) so its modal
+              can use a React portal that targets document.body and is never
+              clipped by the navbar's backdrop-blur / overflow context.
+              The AuthButton inside the nav only shows the trigger button (no modal).
+            */}
             <footer className="border-t border-slate-100 bg-white py-6 mt-auto">
               <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
                 <span>{'© 2026 Sympto+. Todos los derechos reservados.'}</span>

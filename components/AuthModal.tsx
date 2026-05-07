@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -34,7 +35,8 @@ function GoogleIcon() {
   );
 }
 
-export default function AuthModal({ onClose }: AuthModalProps) {
+// ─── Contenido del modal (sin cambios respecto a tu versión original) ─────────
+function ModalContent({ onClose }: AuthModalProps) {
   const t = useTranslations('auth');
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -45,6 +47,17 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // ✅ AÑADIDO: Escape para cerrar + bloqueo de scroll del body
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
 
   const getLoginError = (msg: string): string => {
     const m = msg.toLowerCase();
@@ -111,10 +124,11 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   };
 
   return (
+    // ✅ CAMBIADO: z-[9999] en lugar de z-200 para garantizar que esté por encima de todo
     <div
-  className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 overflow-y-auto"
-  onClick={onClose}
->
+      className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
+      onClick={onClose}
+    >
       <div
         className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl"
         onClick={e => e.stopPropagation()}
@@ -236,4 +250,12 @@ export default function AuthModal({ onClose }: AuthModalProps) {
       </div>
     </div>
   );
+}
+
+// ─── Wrapper con portal ───────────────────────────────────────────────────────
+// El portal hace que el modal se renderice directamente en <body>,
+// completamente fuera del árbol del nav, por lo que backdrop-blur
+// y cualquier stacking context del header nunca lo pueden recortar.
+export default function AuthModal({ onClose }: AuthModalProps) {
+  return createPortal(<ModalContent onClose={onClose} />, document.body);
 }
