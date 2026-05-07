@@ -2,7 +2,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
+import { getMessages } from 'next-intl/server';
 import Script from 'next/script';
 import '../globals.css';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -77,19 +77,15 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
 
-  // ✅ FIX 1: setRequestLocale permite que next-intl sepa el locale en este request
-  // (necesario en Next.js 15 con layouts async)
-  setRequestLocale(locale);
-
-  // ✅ FIX 2: pasar locale explícitamente a getMessages para que cargue
-  // el archivo messages/es.json (o en/zh/ru) correcto
-  const messages = await getMessages({ locale });
+  // ✅ En next-intl v4, getMessages() lee el locale del contexto del request
+  // automáticamente gracias al middleware — NO necesita parámetros ni setRequestLocale
+  const messages = await getMessages();
 
   return (
     <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          {/* ✅ FIX 3: pasar locale explícitamente al provider del cliente */}
+          {/* ✅ Pasar locale y messages explícitamente al provider cliente */}
           <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
             <footer className="border-t border-slate-100 bg-white py-6 mt-auto">
