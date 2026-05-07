@@ -4,6 +4,7 @@
     "brand": "Sympto+"
   },
   "home": {
+    "how_title_upper": "How does it work?",
     "title": "Which area bothers you?",
     "subtitle": "Select the body area, describe your symptom and receive general informational guidance.",
     "no_diagnosis": "Not a medical diagnosis.",
