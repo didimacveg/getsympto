@@ -19,7 +19,14 @@
     "seo_title": "Consultas frecuentes por zona corporal",
     "seo_subtitle": "Selecciona cualquier zona del mapa para obtener orientación sobre tus síntomas",
     "footer_copy": "Sympto+ · Orientación informativa de síntomas corporales",
-    "footer_disclaimer": "Esta plataforma no proporciona diagnósticos médicos. Ante cualquier duda, consulta con tu médico."
+    "footer_disclaimer": "Esta plataforma no proporciona diagnósticos médicos. Ante cualquier duda, consulta con tu médico.",
+    "badge_text": "Orientación informativa · No es diagnóstico médico",
+    "how_title_upper": "¿Cómo funciona?",
+    "feature_anonymous": "Anónimo",
+    "feature_instant": "Instantáneo",
+    "feature_languages": "4 idiomas",
+    "my_history": "Mi historial",
+    "view_saved_queries": "Ver consultas guardadas"
   },
   "zones": {
     "cabeza": "Cabeza",
