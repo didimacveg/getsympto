@@ -4,6 +4,13 @@
     "brand": "Sympto+"
   },
   "home": {
+    "badge_text": "信息指导 · 非医学诊断",
+"feature_anonymous": "匿名",
+"feature_instant": "即时",
+"feature_languages": "4种语言",
+"my_history": "我的历史",
+"view_saved_queries": "查看保存的查询",
+"how_title_upper": "如何使用？",
     "title": "哪个部位让您不舒服？",
     "subtitle": "选择身体部位，描述您的症状，获取一般性信息指导。",
     "no_diagnosis": "这不是医学诊断。",

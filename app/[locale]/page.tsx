@@ -18,7 +18,6 @@ const SEO_ZONES_ES = [
   { zona: 'Rodilla', ejemplos: 'dolor de rodilla, inflamación, crujidos' },
   { zona: 'Hombro', ejemplos: 'dolor de hombro, rigidez, dificultad al mover el brazo' },
 ];
-
 const SEO_ZONES_EN = [
   { zona: 'Head', ejemplos: 'headache, migraine, temple pressure' },
   { zona: 'Chest', ejemplos: 'chest pain, thoracic pressure, discomfort when breathing' },
@@ -27,7 +26,6 @@ const SEO_ZONES_EN = [
   { zona: 'Knee', ejemplos: 'knee pain, inflammation, cracking sounds' },
   { zona: 'Shoulder', ejemplos: 'shoulder pain, stiffness, difficulty moving arm' },
 ];
-
 const SEO_ZONES_ZH = [
   { zona: '头部', ejemplos: '头痛、偏头痛、太阳穴压力' },
   { zona: '胸部', ejemplos: '胸痛、胸部压力、呼吸不适' },
@@ -36,7 +34,6 @@ const SEO_ZONES_ZH = [
   { zona: '膝部', ejemplos: '膝盖痛、炎症、关节响声' },
   { zona: '肩部', ejemplos: '肩痛、僵硬、手臂活动困难' },
 ];
-
 const SEO_ZONES_RU = [
   { zona: 'Голова', ejemplos: 'головная боль, мигрень, давление в висках' },
   { zona: 'Грудь', ejemplos: 'боль в груди, давление, дискомфорт при дыхании' },
@@ -45,12 +42,8 @@ const SEO_ZONES_RU = [
   { zona: 'Колено', ejemplos: 'боль в колене, воспаление, хруст' },
   { zona: 'Плечо', ejemplos: 'боль в плече, скованность, трудности с движением руки' },
 ];
-
 const SEO_BY_LOCALE: Record<string, typeof SEO_ZONES_ES> = {
-  es: SEO_ZONES_ES,
-  en: SEO_ZONES_EN,
-  zh: SEO_ZONES_ZH,
-  ru: SEO_ZONES_RU,
+  es: SEO_ZONES_ES, en: SEO_ZONES_EN, zh: SEO_ZONES_ZH, ru: SEO_ZONES_RU,
 };
 
 export default function Home() {
@@ -63,6 +56,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const seoZones = SEO_BY_LOCALE[locale] || SEO_ZONES_ES;
+  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'U';
+  const userInitials = userName.slice(0, 2).toUpperCase();
 
   const handleAnalyze = async (symptomData: Record<string, string>) => {
     setLoading(true);
@@ -76,8 +71,6 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
       setReport(data);
-
-      // Guardar consulta si el usuario está autenticado
       if (user && data.severity) {
         await supabase.from('user_queries').insert({
           user_id: user.id,
@@ -98,118 +91,168 @@ export default function Home() {
   const handleReset = () => { setReport(null); setSelectedZone(null); setError(null); };
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <nav className="flex items-center justify-between mb-8">
-          <span className="font-bold text-slate-800 text-lg">Sympto+</span>
-          <div className="flex items-center gap-3">
-            <Link href={`/${locale}/sintomas`} className="text-sm text-slate-600 hover:text-blue-600 transition-colors hidden sm:block">
-              Guías
+
+        {/* Navbar */}
+        <nav className="flex items-center justify-between mb-10 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-xs font-bold">S+</span>
+            </div>
+            <span className="font-bold text-slate-800 text-base">Sympto+</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/${locale}/sintomas`}
+              className="text-sm text-slate-500 hover:text-blue-600 transition-colors hidden sm:block px-3 py-1.5"
+            >
+              {locale === 'zh' ? '指南' : locale === 'ru' ? 'Руководства' : locale === 'en' ? 'Guides' : 'Guías'}
             </Link>
-            <Link href={`/${locale}/blog`} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm">
-              {t('see_guides').replace(' →', '')}
+            <Link
+              href={`/${locale}/blog`}
+              className="text-sm text-slate-500 hover:text-blue-600 transition-colors hidden sm:block px-3 py-1.5"
+            >
+              Blog
             </Link>
             <AuthButton />
           </div>
         </nav>
 
-        {/* Hero mejorado */}
+        {/* Hero */}
         <header className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-medium mb-5">
             <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-            Orientación informativa · No es diagnóstico médico
+            {t('badge_text')}
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3 leading-tight">
-            ¿Qué zona{' '}
-            <span className="text-blue-600">te molesta</span>
-            ?
+          <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4 leading-tight tracking-tight">
+            {t('title').split(' ').map((word, i, arr) =>
+              i === arr.length - 1 ? (
+                <span key={i} className="text-blue-600"> {word}</span>
+              ) : (
+                <span key={i}>{word} </span>
+              )
+            )}
           </h1>
-          <p className="text-slate-500 text-base max-w-xl mx-auto">
+          <p className="text-slate-500 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
             {t('subtitle')}
           </p>
         </header>
 
-        {/* Disclaimer mejorado */}
-        <div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700">
-          <span>⚠️</span>
+        {/* Disclaimer */}
+        <div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 max-w-2xl mx-auto">
+          <span className="shrink-0">⚠️</span>
           <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
         </div>
 
+        {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          <div className="flex flex-col items-center">
-            <BodyMap onZoneSelect={(z: string) => { setSelectedZone(z); setReport(null); }} selectedZone={selectedZone} />
-            {!selectedZone && <p className="text-slate-400 text-sm mt-4 animate-pulse">{t('tap_hint')}</p>}
+
+          {/* Body map */}
+          <div className="flex flex-col items-center bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <BodyMap
+              onZoneSelect={(z: string) => { setSelectedZone(z); setReport(null); }}
+              selectedZone={selectedZone}
+            />
+            {!selectedZone && (
+              <p className="text-slate-400 text-sm mt-2 animate-pulse">{t('tap_hint')}</p>
+            )}
           </div>
 
-          <div>
-            {error && <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm mb-4">{error}</div>}
-            {!report && selectedZone && <SymptomForm zone={selectedZone} onSubmit={handleAnalyze} loading={loading} />}
-            {report && <Report data={report} onReset={handleReset} />}
+          {/* Right panel */}
+          <div className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-red-600 text-sm">
+                {error}
+              </div>
+            )}
+            {!report && selectedZone && (
+              <SymptomForm zone={selectedZone} onSubmit={handleAnalyze} loading={loading} />
+            )}
+            {report && (
+              <Report data={report} onReset={handleReset} />
+            )}
             {!selectedZone && !report && (
-              <div className="space-y-4">
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                  <h2 className="font-semibold text-slate-700 mb-4 text-sm uppercase tracking-wide">¿Cómo funciona?</h2>
+              <>
+                {/* How it works */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                  <h2 className="font-semibold text-slate-800 mb-5 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs">?</span>
+                    {t('how_title_upper')}
+                  </h2>
                   <div className="space-y-4">
                     {[
-                      { icon: '👆', step: t('step1'), color: 'bg-blue-50 text-blue-600' },
-                      { icon: '✍️', step: t('step2'), color: 'bg-purple-50 text-purple-600' },
-                      { icon: '⚡', step: t('step3'), color: 'bg-green-50 text-green-600' },
-                    ].map(({ icon, step, color }, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 ${color}`}>
+                      { icon: '👆', step: t('step1'), bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100' },
+                      { icon: '✍️', step: t('step2'), bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-100' },
+                      { icon: '⚡', step: t('step3'), bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100' },
+                    ].map(({ icon, step, bg, text, border }, i) => (
+                      <div key={i} className={`flex items-start gap-3 p-3 rounded-xl border ${bg} ${border}`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0 bg-white shadow-sm`}>
                           {icon}
                         </div>
-                        <p className="text-sm text-slate-600 pt-1">{step}</p>
+                        <p className={`text-sm font-medium ${text} pt-1`}>{step}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-3">
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      <span>🔒</span> Anónimo
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      <span>⚡</span> Instantáneo
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      <span>🌍</span> 4 idiomas
-                    </div>
+                  <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-4">
+                    {[
+                      { icon: '🔒', label: t('feature_anonymous') },
+                      { icon: '⚡', label: t('feature_instant') },
+                      { icon: '🌍', label: t('feature_languages') },
+                    ].map(({ icon, label }) => (
+                      <div key={label} className="flex items-center gap-1 text-xs text-slate-400">
+                        <span>{icon}</span>
+                        <span>{label}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
+
+                {/* History card (logged in users) */}
                 {user && (
                   <Link
                     href={`/${locale}/perfil`}
-                    className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-2xl p-4 hover:border-blue-200 transition group"
+                    className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100/50 border border-blue-200 rounded-2xl p-4 hover:border-blue-300 transition-all group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold">
-                        {(user.user_metadata?.name || user.email || 'U').slice(0, 2).toUpperCase()}
+                      <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                        {userInitials}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-slate-700">Mi historial</p>
-                        <p className="text-xs text-slate-400">Ver consultas guardadas</p>
+                        <p className="text-sm font-semibold text-blue-800">{t('my_history')}</p>
+                        <p className="text-xs text-blue-600">{t('view_saved_queries')}</p>
                       </div>
                     </div>
-                    <span className="text-slate-300 group-hover:text-blue-400 transition-colors">→</span>
+                    <span className="text-blue-300 group-hover:text-blue-500 transition-colors text-lg">→</span>
                   </Link>
                 )}
-                <div className="mt-2">
-                  <Link href={`/${locale}/blog`} className="text-xs text-blue-500 hover:text-blue-700 transition-colors">
+
+                {/* Blog link */}
+                <div className="text-center">
+                  <Link
+                    href={`/${locale}/blog`}
+                    className="text-xs text-slate-400 hover:text-blue-600 transition-colors"
+                  >
                     {t('see_guides')}
                   </Link>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>
 
+        {/* SEO zones */}
         <section className="mt-16 border-t border-slate-200 pt-10">
-          <h2 className="text-xl font-semibold text-slate-700 text-center mb-2">{t('seo_title')}</h2>
+          <h2 className="text-xl font-bold text-slate-800 text-center mb-2">{t('seo_title')}</h2>
           <p className="text-sm text-slate-500 text-center mb-8">{t('seo_subtitle')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {seoZones.map((item) => (
-              <div key={item.zona} className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                <h3 className="font-medium text-slate-700 mb-1">{item.zona}</h3>
-                <p className="text-xs text-slate-500">{item.ejemplos}</p>
+              <div
+                key={item.zona}
+                className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:border-blue-100 hover:shadow-md transition-all cursor-default"
+              >
+                <h3 className="font-semibold text-slate-700 mb-1 text-sm">{item.zona}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{item.ejemplos}</p>
               </div>
             ))}
           </div>
