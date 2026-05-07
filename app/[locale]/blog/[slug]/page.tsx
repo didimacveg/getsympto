@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { SYMPTOMS } from '@/lib/symptoms-data';
 
 type Article = {
   title_es: string; title_en: string;
@@ -310,6 +311,16 @@ If the pain is muscular and not accompanied by general symptoms, observe and app
   },
 };
 
+// These maps are module-level constants (no runtime variables used)
+const BLOG_RELATED_SYMPTOMS: Record<string, string[]> = {
+  'dolor-pecho-al-respirar': ['dolor-en-el-pecho', 'dolor-de-hombro', 'palpitaciones'],
+  'dolor-cabeza-detras-ojos': ['dolor-de-cabeza', 'mareos-y-vertigo', 'dolor-cabeza-todos-los-dias'],
+  'dolor-lado-derecho-abdomen': ['dolor-abdominal', 'dolor-en-el-costado', 'nauseas'],
+  'dolor-espalda-baja-lumbar': ['dolor-lumbar', 'dolor-de-espalda', 'dolor-lumbar-que-baja-a-la-pierna'],
+  'dolor-rodilla-al-bajar-escaleras': ['dolor-de-rodilla', 'dolor-de-rodilla-al-correr', 'dolor-de-tobillo'],
+  'dolor-hombro-brazo-izquierdo': ['dolor-de-hombro', 'dolor-en-el-pecho', 'me-duele-el-pecho-y-el-brazo-izquierdo'],
+};
+
 const RELATED: Record<string, string[]> = {
   'dolor-pecho-al-respirar': ['dolor-hombro-brazo-izquierdo', 'dolor-espalda-baja-lumbar'],
   'dolor-cabeza-detras-ojos': ['dolor-hombro-brazo-izquierdo', 'dolor-pecho-al-respirar'],
@@ -377,6 +388,12 @@ export default async function ArticlePage({ params }: Props) {
 
   const relatedArticles = (RELATED[slug] || []).map(s => ({ slug: s, ...ARTICLES[s] })).filter(Boolean);
 
+  // Resolved here inside the component where `slug` and `locale` are available
+  const relatedSymptomSlugs = BLOG_RELATED_SYMPTOMS[slug] || [];
+  const relatedSymptoms = relatedSymptomSlugs
+    .map(s => SYMPTOMS.find(sym => sym.slug === s))
+    .filter(Boolean);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -425,6 +442,30 @@ export default async function ArticlePage({ params }: Props) {
                       <span className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">{rTitle}</span>
                     </div>
                     <span className="text-slate-300 group-hover:text-blue-400 transition-colors">→</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {relatedSymptoms.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+              📋 Guías de síntomas relacionados
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {relatedSymptoms.map((s) => {
+                if (!s) return null;
+                const c = s.content[locale as keyof typeof s.content] || s.content.es;
+                const symTitle = c.metaTitle.split(':')[0].trim();
+                return (
+                  <Link
+                    key={s.slug}
+                    href={`/${locale}/sintomas/${s.slug}`}
+                    className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                  >
+                    <span>{s.emoji}</span>
+                    <span>{symTitle}</span>
                   </Link>
                 );
               })}

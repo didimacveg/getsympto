@@ -88,6 +88,9 @@ export default function Home() {
         <nav className="flex items-center justify-between mb-8">
           <span className="font-bold text-slate-800 text-lg">Sympto+</span>
           <div className="flex items-center gap-3">
+            <Link href={`/${locale}/sintomas`} className="text-sm text-slate-600 hover:text-blue-600 transition-colors hidden sm:block">
+              Guías
+            </Link>
             <Link href={`/${locale}/blog`} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm">
               {t('see_guides').replace(' →', '')}
             </Link>
