@@ -2,7 +2,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import Script from 'next/script';
 import '../globals.css';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -33,7 +33,6 @@ const META = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const meta = META[locale as keyof typeof META] || META.es;
-
   return {
     title: meta.title,
     description: meta.description,
@@ -77,24 +76,25 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  // ✅ FIX: pass locale explicitly so next-intl loads the correct message file
+
+  // ✅ FIX 1: setRequestLocale permite que next-intl sepa el locale en este request
+  // (necesario en Next.js 15 con layouts async)
+  setRequestLocale(locale);
+
+  // ✅ FIX 2: pasar locale explícitamente a getMessages para que cargue
+  // el archivo messages/es.json (o en/zh/ru) correcto
   const messages = await getMessages({ locale });
 
   return (
     <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
+          {/* ✅ FIX 3: pasar locale explícitamente al provider del cliente */}
           <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
-            {/*
-              ✅ FIX: AuthButton is also rendered here (outside the nav) so its modal
-              can use a React portal that targets document.body and is never
-              clipped by the navbar's backdrop-blur / overflow context.
-              The AuthButton inside the nav only shows the trigger button (no modal).
-            */}
             <footer className="border-t border-slate-100 bg-white py-6 mt-auto">
               <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-                <span>{'© 2026 Sympto+. Todos los derechos reservados.'}</span>
+                <span>© 2026 Sympto+. Todos los derechos reservados.</span>
                 <div className="flex items-center gap-4">
                   <AuthButton />
                   <LanguageSwitcher />
