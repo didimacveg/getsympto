@@ -140,10 +140,9 @@ export default function Home() {
         </header>
 
         {/* Disclaimer */}
-        <div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 max-w-2xl mx-auto">
-          <span className="shrink-0">⚠️</span>
-          <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
-        </div>
+<div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 max-w-2xl mx-auto">
+  <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
+</div>
 
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -212,7 +211,7 @@ export default function Home() {
                 {user && (
                   <Link
                     href={`/${locale}/perfil`}
-                    className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100/50 border border-blue-200 rounded-2xl p-4 hover:border-blue-300 transition-all group"
+                    className="flex items-center justify-between bg-linear-to-r from-blue-50 to-blue-100/50 border border-blue-200 rounded-2xl p-4 hover:border-blue-300 transition-all group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">

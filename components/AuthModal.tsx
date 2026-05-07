@@ -112,9 +112,9 @@ export default function AuthModal({ onClose }: AuthModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+  className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 overflow-y-auto"
+  onClick={onClose}
+>
       <div
         className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl"
         onClick={e => e.stopPropagation()}

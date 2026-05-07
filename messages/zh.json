@@ -26,7 +26,14 @@
     "seo_title": "按身体部位常见咨询",
     "seo_subtitle": "选择地图上的任何区域，获取有关您症状的指导",
     "footer_copy": "Sympto+ · 症状信息指导平台",
-    "footer_disclaimer": "本平台不提供医疗诊断。如有疑问，请咨询医生。"
+    "footer_disclaimer": "本平台不提供医疗诊断。如有疑问，请咨询医生。",
+    "badge_text": "信息指导 · 非医学诊断",
+    "how_title_upper": "如何使用？",
+    "feature_anonymous": "匿名",
+    "feature_instant": "即时",
+    "feature_languages": "4种语言",
+    "my_history": "我的历史",
+    "view_saved_queries": "查看保存的查询"
   },
   "zones": {
     "cabeza": "头部",
