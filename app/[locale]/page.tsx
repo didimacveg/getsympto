@@ -79,6 +79,7 @@ export default function Home() {
           severity: data.severity,
           action: data.action_recommendation?.primary || null,
           locale,
+          report_data: data, // ← añade esto
         });
       }
     } catch (e) {
