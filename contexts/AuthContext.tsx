@@ -47,6 +47,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         options: { data: { name } },
       });
+      if (!error) {
+        // Enviar email de bienvenida en background
+        const locale = typeof window !== 'undefined'
+          ? window.location.pathname.split('/')[1] || 'es'
+          : 'es';
+        fetch('/api/welcome-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name, locale }),
+        }).catch(() => {}); // silencioso, no bloquea el registro
+      }
       return { error: error?.message ?? null };
     } catch (e) {
       return { error: 'Error de conexión. Inténtalo de nuevo.' };
