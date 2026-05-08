@@ -1,8 +1,6 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const CONFIG = {
   es: {
     subject: '✅ Ya eres parte de Sympto+',
@@ -136,6 +134,8 @@ function buildHtml(locale: string, name: string): string {
 }
 
 export async function POST(request: Request) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
   try {
     const { email, name, locale } = await request.json();
     if (!email) return NextResponse.json({ error: 'No email' }, { status: 400 });
