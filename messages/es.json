@@ -65,7 +65,16 @@
     "muneca_izq": "Muñeca izq.",
     "muneca_der": "Muñeca der.",
     "tobillo_izq": "Tobillo izq.",
-    "tobillo_der": "Tobillo der."
+    "tobillo_der": "Tobillo der.",
+    "ojos": "Глаза",
+    "oidos": "Уши",
+    "nariz": "Нос",
+    "garganta": "Горло",
+    "nuca": "Затылок",
+    "muneca_izq": "Лев. запястье",
+    "muneca_der": "Пр. запястье",
+    "tobillo_izq": "Лев. лодыжка",
+    "tobillo_der": "Пр. лодыжка"
   },
   "form": {
     "zone_prefix": "Zona:",
