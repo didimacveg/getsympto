@@ -13,16 +13,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      // ✅ FIX: añadido accounts.google.com para que el popup/redirect de OAuth funcione
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.iubenda.com https://www.googletagmanager.com https://accounts.google.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      // ✅ FIX: añadido lh3.googleusercontent.com para avatares de Google
-      "img-src 'self' data: blob: https://lh3.googleusercontent.com",
-      "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.supabase.co",
-      // ✅ FIX: añadido accounts.google.com y googleapis para el flujo OAuth
+      "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdxseqprcpwowprwqye.supabase.co",
       "connect-src 'self' https://api.anthropic.com https://*.supabase.co https://www.google-analytics.com https://accounts.google.com https://oauth2.googleapis.com",
-      // ✅ FIX: añadido accounts.google.com en frame-src para el popup OAuth de Google
       "frame-src https://www.iubenda.com https://accounts.google.com",
     ].join('; '),
   },

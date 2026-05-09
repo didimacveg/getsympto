@@ -1,43 +1,53 @@
 import jsPDF from 'jspdf';
 
+// Limpia caracteres que jsPDF no puede renderizar
+function clean(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')   // emoji
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')       // símbolos misc
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')       // dingbats
+    .replace(/⏱|⚠️|⚠|🔴|🟠|🟡|🟢/gu, '')
+    .replace(/&amp;/g, 'y')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const SEVERITY_LABELS: Record<string, Record<string, string>> = {
-  bajo:    { es: 'Bajo',    en: 'Low',    zh: '低',   ru: 'Низкий'  },
-  medio:   { es: 'Medio',   en: 'Medium', zh: '中',   ru: 'Средний' },
-  alto:    { es: 'Alto',    en: 'High',   zh: '高',   ru: 'Высокий' },
-  urgente: { es: 'Urgente', en: 'Urgent', zh: '紧急', ru: 'Срочно'  },
+  bajo:    { es: 'Bajo',    en: 'Low',    zh: 'Bajo',   ru: 'Bajo'    },
+  medio:   { es: 'Medio',   en: 'Medium', zh: 'Medio',  ru: 'Medio'   },
+  alto:    { es: 'Alto',    en: 'High',   zh: 'Alto',   ru: 'Alto'    },
+  urgente: { es: 'Urgente', en: 'Urgent', zh: 'Urgente',ru: 'Urgente' },
 };
 
 const ACTION_LABELS: Record<string, Record<string, string>> = {
-  observar:             { es: 'Observar en casa',  en: 'Monitor at home', zh: '居家观察', ru: 'Наблюдать дома' },
-  medico_general:       { es: 'Consultar médico',  en: 'See a doctor',    zh: '看医生',   ru: 'К врачу'        },
-  especialista:         { es: 'Especialista',       en: 'Specialist',      zh: '专科医生', ru: 'К специалисту'  },
-  urgencias:            { es: 'Ir a urgencias',     en: 'Go to emergency', zh: '去急诊',   ru: 'В скорую'       },
-  emergencia_inmediata: { es: 'Llamar al 112',      en: 'Call 112',        zh: '拨打急救', ru: 'Вызвать 112'    },
+  observar:             { es: 'Observar en casa',  en: 'Monitor at home', zh: 'Observar en casa', ru: 'Observar en casa' },
+  medico_general:       { es: 'Consultar medico',  en: 'See a doctor',    zh: 'Consultar medico', ru: 'Consultar medico' },
+  especialista:         { es: 'Especialista',       en: 'Specialist',      zh: 'Especialista',     ru: 'Especialista'     },
+  urgencias:            { es: 'Ir a urgencias',     en: 'Go to emergency', zh: 'Ir a urgencias',   ru: 'Ir a urgencias'   },
+  emergencia_inmediata: { es: 'Llamar al 112',      en: 'Call 112',        zh: 'Llamar al 112',    ru: 'Llamar al 112'    },
 };
 
 const FREQ_LABELS: Record<string, Record<string, string>> = {
-  común:       { es: 'Frecuente',       en: 'Common',      zh: '常见',  ru: 'Часто'  },
-  menos_común: { es: 'Menos frecuente', en: 'Less common', zh: '较少见',ru: 'Реже'   },
-  rara:        { es: 'Poco frecuente',  en: 'Rare',        zh: '罕见',  ru: 'Редко'  },
+  comun:       { es: 'Frecuente',       en: 'Common',      zh: 'Frecuente',       ru: 'Frecuente'       },
+  menos_comun: { es: 'Menos frecuente', en: 'Less common', zh: 'Menos frecuente', ru: 'Menos frecuente' },
+  rara:        { es: 'Poco frecuente',  en: 'Rare',        zh: 'Poco frecuente',  ru: 'Poco frecuente'  },
 };
 
 const HEADINGS: Record<string, Record<string, string>> = {
-  title:        { es: 'Informe de Síntoma — Sympto+',       en: 'Symptom Report — Sympto+',         zh: '症状报告 — Sympto+',      ru: 'Отчёт о симптоме — Sympto+' },
-  date:         { es: 'Fecha',                              en: 'Date',                             zh: '日期',                    ru: 'Дата'                       },
-  zone:         { es: 'Zona corporal',                      en: 'Body zone',                        zh: '身体部位',                ru: 'Зона тела'                  },
-  description:  { es: 'Descripción',                        en: 'Description',                      zh: '描述',                    ru: 'Описание'                   },
-  severity:     { es: 'Nivel de severidad',                 en: 'Severity level',                   zh: '严重程度',                ru: 'Уровень серьёзности'        },
-  explanation:  { es: 'Explicación',                        en: 'Explanation',                      zh: '说明',                    ru: 'Объяснение'                 },
-  contexts:     { es: 'Posibles contextos',                 en: 'Possible contexts',                zh: '可能的情况',              ru: 'Возможные причины'          },
-  recommendation:{ es: 'Recomendación',                     en: 'Recommendation',                   zh: '建议',                    ru: 'Рекомендация'               },
-  timeframe:    { es: 'Cuándo actuar',                      en: 'When to act',                      zh: '何时行动',                ru: 'Когда действовать'          },
-  red_flags:    { es: 'Señales de alarma',                  en: 'Warning signs',                    zh: '警告信号',                ru: 'Тревожные признаки'         },
-  general_info: { es: 'Información general',                en: 'General information',              zh: '一般信息',                ru: 'Общая información'          },
-  disclaimer:   { es: 'Aviso importante',                   en: 'Important notice',                 zh: '重要提示',                ru: 'Важное уведомление'         },
-  footer:       { es: 'Este informe es exclusivamente informativo. No sustituye la consulta médica.',
-                  en: 'This report is for informational purposes only. It does not replace medical advice.',
-                  zh: '此报告仅供参考，不能替代医疗建议。',
-                  ru: 'Этот отчёт носит исключительно информационный характер и не заменяет медицинскую консультацию.' },
+  title:         { es: 'Informe de Sintoma - Sympto+',      en: 'Symptom Report - Sympto+'        },
+  date:          { es: 'Fecha',                             en: 'Date'                            },
+  zone:          { es: 'Zona corporal',                     en: 'Body zone'                       },
+  severity:      { es: 'Nivel de severidad',                en: 'Severity level'                  },
+  description:   { es: 'Descripcion',                       en: 'Description'                     },
+  explanation:   { es: 'Explicacion',                       en: 'Explanation'                     },
+  contexts:      { es: 'Posibles contextos',                en: 'Possible contexts'               },
+  recommendation:{ es: 'Recomendacion',                     en: 'Recommendation'                  },
+  timeframe:     { es: 'Cuando actuar',                     en: 'When to act'                     },
+  red_flags:     { es: 'Senales de alarma',                 en: 'Warning signs'                   },
+  general_info:  { es: 'Informacion general',               en: 'General information'             },
+  footer:        { es: 'Este informe es orientativo. Consulta siempre con un profesional sanitario.',
+                   en: 'This report is for informational purposes only. Always consult a healthcare professional.' },
 };
 
 function h(key: string, locale: string): string {
@@ -45,7 +55,7 @@ function h(key: string, locale: string): string {
 }
 
 function wrapText(doc: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number {
-  const lines = doc.splitTextToSize(text, maxWidth);
+  const lines = doc.splitTextToSize(clean(text), maxWidth);
   doc.text(lines, x, y);
   return y + lines.length * lineHeight;
 }
@@ -66,23 +76,18 @@ export function generateReportPDF(query: {
   } | null;
 }): void {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const locale = query.locale || 'es';
+  const locale = ['es', 'en'].includes(query.locale) ? query.locale : 'es';
   const margin = 20;
   const pageWidth = doc.internal.pageSize.getWidth();
   const contentWidth = pageWidth - margin * 2;
   const lineH = 6;
   let y = margin;
 
-  const addPage = () => {
-    doc.addPage();
-    y = margin;
-  };
-
   const checkPage = (needed = 20) => {
-    if (y + needed > 275) addPage();
+    if (y + needed > 272) { doc.addPage(); y = margin; }
   };
 
-  // Header bar
+  // Header
   doc.setFillColor(37, 99, 235);
   doc.rect(0, 0, pageWidth, 18, 'F');
   doc.setTextColor(255, 255, 255);
@@ -91,32 +96,26 @@ export function generateReportPDF(query: {
   doc.text('Sympto+', margin, 12);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(h('title', locale), margin + 22, 12);
+  doc.text(h('title', locale), margin + 24, 12);
   y = 28;
 
-  // Date
+  // Fecha
   doc.setTextColor(100, 116, 139);
   doc.setFontSize(9);
   const dateStr = new Date(query.created_at).toLocaleDateString(
-    locale === 'zh' ? 'zh-CN' : locale === 'ru' ? 'ru-RU' : locale === 'en' ? 'en-GB' : 'es-ES',
+    locale === 'en' ? 'en-GB' : 'es-ES',
     { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
   );
   doc.text(`${h('date', locale)}: ${dateStr}`, margin, y);
   y += 10;
 
-  // Zone + Severity box
+  // Zona y severidad
   const sevLabel = SEVERITY_LABELS[query.severity]?.[locale] || query.severity;
-  const sevColors: Record<string, [number, number, number]> = {
-    bajo:    [220, 252, 231],
-    medio:   [254, 249, 195],
-    alto:    [255, 237, 213],
-    urgente: [254, 226, 226],
+  const sevColors: Record<string, [number,number,number]> = {
+    bajo:[220,252,231], medio:[254,249,195], alto:[255,237,213], urgente:[254,226,226],
   };
-  const sevTextColors: Record<string, [number, number, number]> = {
-    bajo:    [21, 128, 61],
-    medio:   [161, 98, 7],
-    alto:    [154, 52, 18],
-    urgente: [185, 28, 28],
+  const sevTextColors: Record<string, [number,number,number]> = {
+    bajo:[21,128,61], medio:[161,98,7], alto:[154,52,18], urgente:[185,28,28],
   };
   const bgColor = sevColors[query.severity] || sevColors.bajo;
   const txtColor = sevTextColors[query.severity] || sevTextColors.bajo;
@@ -126,11 +125,11 @@ export function generateReportPDF(query: {
   doc.setTextColor(...txtColor);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(`${h('zone', locale)}: ${query.zone}`, margin + 4, y + 7);
+  doc.text(`${h('zone', locale)}: ${clean(query.zone)}`, margin + 4, y + 7);
   doc.text(`${h('severity', locale)}: ${sevLabel}`, margin + 4, y + 15);
   y += 28;
 
-  // Description
+  // Descripcion
   doc.setTextColor(30, 41, 59);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
@@ -145,114 +144,117 @@ export function generateReportPDF(query: {
   const report = query.report_data;
   if (!report) {
     doc.setFontSize(9);
-    doc.setTextColor(148, 163, 184);
+    doc.setTextColor(148,163,184);
     doc.text('Informe detallado no disponible.', margin, y);
   } else {
-    // Severity explanation
+
+    // Explicacion severidad
     if (report.severity_explanation) {
       checkPage(20);
-      doc.setTextColor(30, 41, 59);
+      doc.setTextColor(30,41,59);
+      doc.setFont('helvetica','bold');
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(h('explanation', locale), margin, y);
-      y += 6;
-      doc.setFont('helvetica', 'normal');
+      doc.text(h('explanation', locale), margin, y); y += 6;
+      doc.setFont('helvetica','normal');
       doc.setFontSize(9);
-      doc.setTextColor(71, 85, 105);
+      doc.setTextColor(71,85,105);
       y = wrapText(doc, report.severity_explanation, margin, y, contentWidth, lineH);
       y += 8;
     }
 
-    // Possible contexts
+    // Posibles contextos
     if (report.possible_contexts?.length) {
       checkPage(20);
-      doc.setTextColor(30, 41, 59);
+      doc.setTextColor(30,41,59);
+      doc.setFont('helvetica','bold');
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(h('contexts', locale), margin, y);
-      y += 7;
+      doc.text(h('contexts', locale), margin, y); y += 7;
+
       for (const ctx of report.possible_contexts) {
-        checkPage(18);
-        const freqLabel = FREQ_LABELS[ctx.frequency]?.[locale] || ctx.frequency;
+        checkPage(20);
+        const freqKey = ctx.frequency?.replace('ú','u').replace('ó','o') || 'comun';
+        const freqLabel = FREQ_LABELS[freqKey]?.[locale] || ctx.frequency;
+        const titleLine = `${clean(ctx.context)} (${freqLabel})`;
+        const descLines = doc.splitTextToSize(clean(ctx.description), contentWidth - 8);
+        const boxH = 14 + descLines.length * (lineH - 1);
+
         doc.setFillColor(248, 250, 252);
-        const ctxLines = doc.splitTextToSize(ctx.description, contentWidth - 16);
-        const boxH = 14 + ctxLines.length * lineH;
         doc.roundedRect(margin, y, contentWidth, boxH, 2, 2, 'F');
-        doc.setFont('helvetica', 'bold');
+        doc.setFont('helvetica','bold');
         doc.setFontSize(9);
-        doc.setTextColor(30, 41, 59);
-        doc.text(`• ${ctx.context}`, margin + 3, y + 7);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(100, 116, 139);
-        doc.setFontSize(8);
-        doc.text(`(${freqLabel})`, margin + 3 + doc.getTextWidth(`• ${ctx.context}`) + 2, y + 7);
-        doc.setTextColor(71, 85, 105);
+        doc.setTextColor(30,41,59);
+        doc.text(`- ${titleLine}`, margin + 3, y + 7);
+        doc.setFont('helvetica','normal');
         doc.setFontSize(8.5);
-        doc.text(ctxLines, margin + 3, y + 13);
+        doc.setTextColor(71,85,105);
+        doc.text(descLines, margin + 3, y + 13);
         y += boxH + 3;
       }
       y += 4;
     }
 
-    // Recommendation
+    // Recomendacion
     if (report.action_recommendation) {
       checkPage(28);
+      const actionKey = report.action_recommendation.primary;
+      const actionLabel = ACTION_LABELS[actionKey]?.[locale] || clean(actionKey);
+      const expLines = doc.splitTextToSize(clean(report.action_recommendation.explanation), contentWidth - 8);
+      const recH = 28 + expLines.length * lineH;
+
       doc.setFillColor(239, 246, 255);
-      const recLines = doc.splitTextToSize(report.action_recommendation.explanation, contentWidth - 8);
-      const recH = 28 + recLines.length * lineH;
       doc.roundedRect(margin, y, contentWidth, recH, 3, 3, 'F');
       doc.setTextColor(29, 78, 216);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('helvetica','bold');
       doc.setFontSize(10);
       doc.text(h('recommendation', locale), margin + 4, y + 8);
-      const actionLabel = ACTION_LABELS[report.action_recommendation.primary]?.[locale] || report.action_recommendation.primary;
       doc.setFontSize(9);
       doc.text(actionLabel, margin + 4, y + 15);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('helvetica','normal');
       doc.setFontSize(8.5);
       doc.setTextColor(59, 130, 246);
-      doc.text(recLines, margin + 4, y + 22);
+      doc.text(expLines, margin + 4, y + 22);
       y += recH + 4;
+
       if (report.action_recommendation.timeframe) {
         doc.setFontSize(8.5);
         doc.setTextColor(100, 116, 139);
-        doc.text(`⏱ ${h('timeframe', locale)}: ${report.action_recommendation.timeframe}`, margin, y);
+        doc.text(`${h('timeframe', locale)}: ${clean(report.action_recommendation.timeframe)}`, margin, y);
         y += 8;
       }
       y += 4;
     }
 
-    // Red flags
+    // Senales de alarma
     if (report.red_flags?.length) {
       checkPage(20);
-      doc.setFillColor(254, 242, 242);
-      const flagLines = report.red_flags.flatMap(f => doc.splitTextToSize(`• ${f}`, contentWidth - 8));
+      const flagLines = report.red_flags.flatMap(f => doc.splitTextToSize(`- ${clean(f)}`, contentWidth - 8));
       const flagH = 14 + flagLines.length * (lineH - 1);
+
+      doc.setFillColor(254, 242, 242);
       doc.roundedRect(margin, y, contentWidth, flagH, 3, 3, 'F');
       doc.setTextColor(185, 28, 28);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('helvetica','bold');
       doc.setFontSize(10);
-      doc.text(`⚠ ${h('red_flags', locale)}`, margin + 4, y + 8);
-      doc.setFont('helvetica', 'normal');
+      doc.text(`[!] ${h('red_flags', locale)}`, margin + 4, y + 8);
+      doc.setFont('helvetica','normal');
       doc.setFontSize(8.5);
       let fy = y + 14;
       for (const f of report.red_flags) {
-        const fl = doc.splitTextToSize(`• ${f}`, contentWidth - 8);
+        const fl = doc.splitTextToSize(`- ${clean(f)}`, contentWidth - 8);
         doc.text(fl, margin + 4, fy);
         fy += fl.length * (lineH - 1);
       }
       y += flagH + 8;
     }
 
-    // General info
+    // Info general
     if (report.general_info) {
       checkPage(20);
       doc.setTextColor(30, 41, 59);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('helvetica','bold');
       doc.setFontSize(10);
-      doc.text(h('general_info', locale), margin, y);
-      y += 6;
-      doc.setFont('helvetica', 'normal');
+      doc.text(h('general_info', locale), margin, y); y += 6;
+      doc.setFont('helvetica','normal');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
       y = wrapText(doc, report.general_info, margin, y, contentWidth, lineH);
@@ -260,19 +262,19 @@ export function generateReportPDF(query: {
     }
   }
 
-  // ✅ FIX: usar doc.getNumberOfPages() directamente (API pública de jsPDF moderno)
-  const totalPages = doc.getNumberOfPages();
+  // Footer en cada pagina
+  const totalPages = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFillColor(248, 250, 252);
     doc.rect(0, 282, pageWidth, 15, 'F');
     doc.setTextColor(148, 163, 184);
     doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('helvetica','normal');
     doc.text(h('footer', locale), margin, 289);
     doc.text(`${i} / ${totalPages}`, pageWidth - margin, 289, { align: 'right' });
   }
 
-  const fileName = `sympto-informe-${query.zone}-${new Date(query.created_at).toISOString().split('T')[0]}.pdf`;
+  const fileName = `sympto-informe-${clean(query.zone)}-${new Date(query.created_at).toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 }
