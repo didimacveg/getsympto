@@ -46,7 +46,7 @@ const ZONE_LABELS: Record<string, { label_es: string; label_en: string; label_zh
   muslo_izq:    { label_es: 'Muslo izq.',      label_en: 'Left thigh',     label_zh: '左大腿', label_ru: 'Лев. бедро', emoji: '🦵' },
   muslo_der:    { label_es: 'Muslo der.',      label_en: 'Right thigh',    label_zh: '右大腿', label_ru: 'Пр. бедро',  emoji: '🦵' },
   rodilla_izq:  { label_es: 'Rodilla izq.',    label_en: 'Left knee',      label_zh: '左膝',   label_ru: 'Лев. колено',emoji: '🦿' },
-  rodilla_der:  { label_es: 'Rodilla der.',    label_en: 'Right knee',     label_zh: '右膝',   label_ru: 'Пр. колено', emoji: '🦿' },
+  rodilla_der:  { label_es: 'Rodilla der.',    label_en: 'Right knee',     label_zh: '右膝',   label_ru: 'Пр. колeno', emoji: '🦿' },
   pierna_izq:   { label_es: 'Pierna izq.',     label_en: 'Left leg',       label_zh: '左小腿', label_ru: 'Лев. голень',emoji: '🦵' },
   pierna_der:   { label_es: 'Pierna der.',     label_en: 'Right leg',      label_zh: '右小腿', label_ru: 'Пр. голень', emoji: '🦵' },
   pie_izq:      { label_es: 'Pie izq.',        label_en: 'Left foot',      label_zh: '左脚',   label_ru: 'Лев. стопа', emoji: '🦶' },
@@ -199,7 +199,6 @@ export default function PerfilPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
-  // ✅ AÑADIDO: estados para avatar
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -212,15 +211,23 @@ export default function PerfilPage() {
     if (user) fetchQueries();
   }, [user]);
 
-  // ✅ AÑADIDO: cargar avatar al montar
+  // Load avatar — falls back gracefully if profile row missing
   useEffect(() => {
-    if (user) {
-      supabase.from('profiles').select('avatar_url').eq('id', user.id).single()
-        .then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url); });
-    }
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (error) console.error('Error cargando perfil:', error.message);
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
+      });
   }, [user]);
 
-  // ✅ AÑADIDO: función de upload de avatar
+  // Updated avatar upload with full error logging
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -229,16 +236,43 @@ export default function PerfilPage() {
       return;
     }
     setUploadingAvatar(true);
-    const ext = file.name.split('.').pop();
-    const path = `${user.id}/avatar.${ext}`;
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
-    if (!uploadError) {
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-      const url = `${data.publicUrl}?t=${Date.now()}`;
-      await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id);
-      setAvatarUrl(url);
+    try {
+      // Fixed path without variable extension to avoid stale cache misses
+      const path = `${user.id}/avatar`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, {
+          upsert: true,
+          contentType: file.type,
+        });
+      if (uploadError) {
+        console.error('❌ Error en upload:', uploadError.message);
+        alert('Error subiendo imagen: ' + uploadError.message);
+        setUploadingAvatar(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(path);
+      // Timestamp cache-busting so the browser reloads the new image
+      const publicUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+      console.log('✅ URL pública:', publicUrl);
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+      if (updateError) {
+        console.error('❌ Error guardando URL en profiles:', updateError.message);
+        alert('Error guardando avatar: ' + updateError.message);
+      } else {
+        console.log('✅ Avatar guardado en profiles');
+        setAvatarUrl(publicUrl);
+      }
+    } catch (err) {
+      console.error('❌ Error inesperado:', err);
+    } finally {
+      setUploadingAvatar(false);
     }
-    setUploadingAvatar(false);
   };
 
   const fetchQueries = async () => {
@@ -305,16 +339,20 @@ export default function PerfilPage() {
         {/* Profile header */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
           <div className="flex items-center gap-5">
-            {/* ✅ REEMPLAZADO: Avatar con upload */}
+            {/* Avatar with upload */}
             <div className="relative shrink-0 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt="Avatar"
                   className="w-16 h-16 rounded-2xl object-cover shadow-md"
+                  onError={() => {
+                    console.error('❌ Error cargando imagen desde URL:', avatarUrl);
+                    setAvatarUrl(null); // fall back to initials
+                  }}
                 />
               ) : (
-                <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
                   {initials}
                 </div>
               )}
@@ -433,7 +471,7 @@ export default function PerfilPage() {
                           </div>
                         </div>
 
-                        {/* ✅ REEMPLAZADO: Actions con botón PDF añadido */}
+                        {/* Actions */}
                         <div className="flex flex-col items-end gap-2 shrink-0">
                           <div className="flex items-center gap-2 mt-1">
                             <button

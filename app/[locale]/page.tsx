@@ -77,14 +77,18 @@ export default function Home() {
       if (user && data.severity) {
         const { error: insertError } = await supabase.from('user_queries').insert({
           user_id: user.id,
-          zone: selectedZones[0],
+          zone: selectedZones[0] || 'cabeza',
           description: symptomData.description,
           severity: data.severity,
           action: data.action_recommendation?.primary || null,
           locale,
           report_data: data,
         });
-        if (insertError) console.error('Error guardando consulta:', insertError);
+        if (insertError) {
+          console.error('❌ Error guardando informe:', insertError.message, insertError.details);
+        } else {
+          console.log('✅ Informe guardado correctamente');
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error desconocido');
