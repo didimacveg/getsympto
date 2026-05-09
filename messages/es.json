@@ -56,7 +56,16 @@
     "gluteo_izq": "Glúteo izquierdo",
     "gluteo_der": "Glúteo derecho",
     "gemelo_izq": "Gemelo izquierdo",
-    "gemelo_der": "Gemelo derecho"
+    "gemelo_der": "Gemelo derecho",
+    "ojos": "Ojos",
+    "oidos": "Oídos",
+    "nariz": "Nariz",
+    "garganta": "Garganta",
+    "nuca": "Nuca",
+    "muneca_izq": "Muñeca izq.",
+    "muneca_der": "Muñeca der.",
+    "tobillo_izq": "Tobillo izq.",
+    "tobillo_der": "Tobillo der."
   },
   "form": {
     "zone_prefix": "Zona:",
