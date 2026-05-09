@@ -50,7 +50,8 @@ export default function Home() {
   const t = useTranslations('home');
   const locale = useLocale();
   const { user } = useAuth();
-  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+
+  const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,47 +61,49 @@ export default function Home() {
   const userInitials = userName.slice(0, 2).toUpperCase();
 
   const handleAnalyze = async (symptomData: Record<string, string>) => {
+    if (selectedZones.length === 0) return;
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zone: selectedZone, locale, ...symptomData }),
+        body: JSON.stringify({ zones: selectedZones, locale, ...symptomData }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
       setReport(data);
+
       if (user && data.severity) {
-        await supabase.from('user_queries').insert({
+        const { error: insertError } = await supabase.from('user_queries').insert({
           user_id: user.id,
-          zone: selectedZone,
+          zone: selectedZones[0],
           description: symptomData.description,
           severity: data.severity,
           action: data.action_recommendation?.primary || null,
           locale,
-          report_data: data, // ← añade esto
+          report_data: data,
         });
+        if (insertError) console.error('Error guardando consulta:', insertError);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error');
+      setError(e instanceof Error ? e.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReset = () => { setReport(null); setSelectedZone(null); setError(null); };
+  const handleReset = () => {
+    setReport(null);
+    setSelectedZones([]);
+    setError(null);
+  };
 
   return (
     <main className="min-h-screen bg-linear-to-b from-slate-50 to-white">
       <div className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* Navbar
-            ✅ FIX: removed AuthButton from here (or pass triggerOnly prop if your
-            AuthButton supports it) so the modal is NOT rendered inside this nav.
-            The modal lives in layout.tsx at the root body level via a portal.
-            If your AuthButton does NOT support triggerOnly yet, see AuthButton fix below.
-        */}
+        {/* Navbar */}
         <nav className="flex items-center justify-between mb-10 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -121,9 +124,6 @@ export default function Home() {
             >
               Blog
             </Link>
-            {/* ✅ FIX: AuthButton in the nav only renders the trigger button.
-                The actual modal is rendered via a portal at body level (see AuthButton.tsx fix).
-                This way backdrop-blur on the nav never clips the modal overlay. */}
             <AuthButton />
           </div>
         </nav>
@@ -132,16 +132,13 @@ export default function Home() {
         <header className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-medium mb-5">
             <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-            {/* ✅ FIX: t('badge_text') — key exists in es.json under home.badge_text */}
             {t('badge_text')}
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4 leading-tight tracking-tight">
             {t('title').split(' ').map((word, i, arr) =>
-              i === arr.length - 1 ? (
-                <span key={i} className="text-blue-600"> {word}</span>
-              ) : (
-                <span key={i}>{word} </span>
-              )
+              i === arr.length - 1
+                ? <span key={i} className="text-blue-600"> {word}</span>
+                : <span key={i}>{word} </span>
             )}
           </h1>
           <p className="text-slate-500 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
@@ -151,6 +148,7 @@ export default function Home() {
 
         {/* Disclaimer */}
         <div className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-8 text-xs text-amber-700 max-w-2xl mx-auto">
+          <span className="shrink-0">⚠️</span>
           <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
         </div>
 
@@ -160,51 +158,58 @@ export default function Home() {
           {/* Body map */}
           <div className="flex flex-col items-center bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
             <BodyMap
-              onZoneSelect={(z: string) => { setSelectedZone(z); setReport(null); }}
-              selectedZone={selectedZone}
+              onZonesChange={(zones: string[]) => {
+                setSelectedZones(zones);
+                setReport(null);
+                setError(null);
+              }}
+              selectedZones={selectedZones as string[]}
             />
-            {!selectedZone && (
-              <p className="text-slate-400 text-sm mt-2 animate-pulse">{t('tap_hint')}</p>
-            )}
           </div>
 
-          {/* Right panel */}
+          {/* Panel derecho */}
           <div className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-red-600 text-sm">
                 {error}
               </div>
             )}
-            {!report && selectedZone && (
-              <SymptomForm zone={selectedZone} onSubmit={handleAnalyze} loading={loading} />
+
+            {!report && selectedZones.length > 0 && (
+              <SymptomForm
+                zone={selectedZones[0]}
+                onSubmit={handleAnalyze}
+                loading={loading}
+              />
             )}
+
             {report && (
               <Report data={report} onReset={handleReset} />
             )}
-            {!selectedZone && !report && (
+
+            {selectedZones.length === 0 && !report && (
               <>
-                {/* How it works */}
+                {/* Cómo funciona */}
                 <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                   <h2 className="font-semibold text-slate-800 mb-5 flex items-center gap-2">
-                    <span className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs">?</span>
-                    {/* ✅ FIX: key is 'how_title_upper' in es.json → renders "¿Cómo funciona?" */}
+                    <span className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold">?</span>
                     {t('how_title_upper')}
                   </h2>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {[
-                      { icon: '👆', step: t('step1'), bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100' },
-                      { icon: '✍️', step: t('step2'), bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-100' },
-                      { icon: '⚡', step: t('step3'), bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100' },
+                      { icon: '👆', step: t('step1'), bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' },
+                      { icon: '✍️', step: t('step2'), bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-100' },
+                      { icon: '⚡', step: t('step3'), bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
                     ].map(({ icon, step, bg, text, border }, i) => (
                       <div key={i} className={`flex items-start gap-3 p-3 rounded-xl border ${bg} ${border}`}>
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0 bg-white shadow-sm`}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0 bg-white shadow-sm">
                           {icon}
                         </div>
                         <p className={`text-sm font-medium ${text} pt-1`}>{step}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-4">
+                  <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-4 flex-wrap">
                     {[
                       { icon: '🔒', label: t('feature_anonymous') },
                       { icon: '⚡', label: t('feature_instant') },
@@ -212,14 +217,13 @@ export default function Home() {
                     ].map(({ icon, label }) => (
                       <div key={label} className="flex items-center gap-1 text-xs text-slate-400">
                         <span>{icon}</span>
-                        {/* ✅ FIX: these keys exist in es.json: feature_anonymous, feature_instant, feature_languages */}
                         <span>{label}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* History card (logged in users) */}
+                {/* Historial para usuarios logueados */}
                 {user && (
                   <Link
                     href={`/${locale}/perfil`}
@@ -238,12 +242,8 @@ export default function Home() {
                   </Link>
                 )}
 
-                {/* Blog link */}
                 <div className="text-center">
-                  <Link
-                    href={`/${locale}/blog`}
-                    className="text-xs text-slate-400 hover:text-blue-600 transition-colors"
-                  >
+                  <Link href={`/${locale}/blog`} className="text-xs text-slate-400 hover:text-blue-600 transition-colors">
                     {t('see_guides')}
                   </Link>
                 </div>
@@ -260,7 +260,7 @@ export default function Home() {
             {seoZones.map((item) => (
               <div
                 key={item.zona}
-                className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:border-blue-100 hover:shadow-md transition-all cursor-default"
+                className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:border-blue-100 hover:shadow-md transition-all"
               >
                 <h3 className="font-semibold text-slate-700 mb-1 text-sm">{item.zona}</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">{item.ejemplos}</p>
