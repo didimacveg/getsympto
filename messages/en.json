@@ -56,7 +56,16 @@
     "gluteo_izq": "Left Gluteus",
     "gluteo_der": "Right Gluteus",
     "gemelo_izq": "Left Calf",
-    "gemelo_der": "Right Calf"
+    "gemelo_der": "Right Calf",
+    "ojos": "Eyes",
+    "oidos": "Ears",
+    "nariz": "Nose",
+    "garganta": "Throat",
+    "nuca": "Back of neck",
+    "muneca_izq": "Left wrist",
+    "muneca_der": "Right wrist",
+    "tobillo_izq": "Left ankle",
+    "tobillo_der": "Right ankle"
   },
   "form": {
     "zone_prefix": "Area:",
