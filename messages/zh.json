@@ -56,7 +56,16 @@
     "gluteo_izq": "左臀",
     "gluteo_der": "右臀",
     "gemelo_izq": "左腓肠肌",
-    "gemelo_der": "右腓肠肌"
+    "gemelo_der": "右腓肠肌",
+    "ojos": "眼睛",
+    "oidos": "耳朵",
+    "nariz": "鼻子",
+    "garganta": "喉咙",
+    "nuca": "颈背",
+    "muneca_izq": "左手腕",
+    "muneca_der": "右手腕",
+    "tobillo_izq": "左脚踝",
+    "tobillo_der": "右脚踝"
   },
   "form": {
     "zone_prefix": "部位：",
