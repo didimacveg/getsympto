@@ -662,7 +662,9 @@ export default function PerfilPage() {
                                 : 'Describe cualquier cambio desde tu último informe. Reharemos el análisis con la nueva información.'}
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 text-xs text-slate-500">
-                              <span className="font-medium text-slate-600">Síntoma original: </span>
+                              <span className="font-medium text-slate-600">
+                                {locale === 'en' ? 'Original symptom: ' : locale === 'zh' ? '原始症状：' : locale === 'ru' ? 'Исходный симптом: ' : 'Síntoma original: '}
+                              </span>
                               {query.description}
                             </div>
                             <textarea

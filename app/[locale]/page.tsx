@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import BodyMap from '@/components/BodyMap';
@@ -55,6 +55,14 @@ export default function Home() {
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      supabase.from('profiles').select('avatar_url').eq('id', user.id).single()
+        .then(({ data }) => { if (data?.avatar_url) setProfileAvatarUrl(data.avatar_url); });
+    }
+  }, [user]);
 
   const seoZones = SEO_BY_LOCALE[locale] || SEO_ZONES_ES;
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'U';
@@ -234,9 +242,18 @@ export default function Home() {
                     className="flex items-center justify-between bg-linear-to-r from-blue-50 to-blue-100/50 border border-blue-200 rounded-2xl p-4 hover:border-blue-300 transition-all group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                        {userInitials}
-                      </div>
+                      {profileAvatarUrl ? (
+                        <img
+                          src={profileAvatarUrl}
+                          alt="Avatar"
+                          className="w-10 h-10 rounded-xl object-cover shadow-sm"
+                          onError={() => setProfileAvatarUrl(null)}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                          {userInitials}
+                        </div>
+                      )}
                       <div>
                         <p className="text-sm font-semibold text-blue-800">{t('my_history')}</p>
                         <p className="text-xs text-blue-600">{t('view_saved_queries')}</p>
