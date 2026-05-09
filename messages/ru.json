@@ -56,7 +56,17 @@
     "gluteo_izq": "Левая ягодица",
     "gluteo_der": "Правая ягодица",
     "gemelo_izq": "Левая икра",
-    "gemelo_der": "Правая икра"
+    "gemelo_der": "Правая икра",
+    "ojos": "Глаза",
+    "oidos": "Уши",
+    "nariz": "Нос",
+    "garganta": "Горло",
+    "nuca": "Затылок",
+    "muneca_izq": "Лев. запястье",
+    "muneca_der": "Пр. запястье",
+    "tobillo_izq": "Лев. лодыжка",
+    "tobillo_der": "Пр. лодыжка"
+
   },
   "form": {
     "zone_prefix": "Зона:",
@@ -144,7 +154,7 @@
   "close": "Закрыть",
   "or": "или",
   "google": "Продолжить с Google"
-  
+
 },
 "reviews": {
   "title": "Что говорят наши пользователи",
