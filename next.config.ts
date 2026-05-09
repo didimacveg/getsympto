@@ -19,6 +19,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       // ✅ FIX: añadido lh3.googleusercontent.com para avatares de Google
       "img-src 'self' data: blob: https://lh3.googleusercontent.com",
+      "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.supabase.co",
       // ✅ FIX: añadido accounts.google.com y googleapis para el flujo OAuth
       "connect-src 'self' https://api.anthropic.com https://*.supabase.co https://www.google-analytics.com https://accounts.google.com https://oauth2.googleapis.com",
       // ✅ FIX: añadido accounts.google.com en frame-src para el popup OAuth de Google
