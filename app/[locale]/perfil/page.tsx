@@ -203,6 +203,12 @@ export default function PerfilPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Reanalyze states
+  const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
+  const [reanalyzeInput, setReanalyzeInput] = useState('');
+  const [reanalyzeLoading, setReanalyzeLoading] = useState(false);
+  const [reanalyzeResult, setReanalyzeResult] = useState<ReportData | null>(null);
+
   useEffect(() => {
     if (!loading && !user) router.replace(`/${locale}`);
   }, [user, loading, locale, router]);
@@ -294,6 +300,45 @@ export default function PerfilPage() {
     setDeletingId(null);
   };
 
+  const handleReanalyze = async (query: Query) => {
+    if (!reanalyzeInput.trim()) return;
+    setReanalyzeLoading(true);
+    setReanalyzeResult(null);
+    try {
+      const combinedDescription = `${query.description}. Actualizacion: ${reanalyzeInput.trim()}`;
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zones: [query.zone],
+          description: combinedDescription,
+          locale: query.locale || locale,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setReanalyzeResult(data);
+
+      // Guardar el nuevo informe
+      if (user) {
+        await supabase.from('user_queries').insert({
+          user_id: user.id,
+          zone: query.zone,
+          description: combinedDescription,
+          severity: data.severity,
+          action: data.action_recommendation?.primary || null,
+          locale: query.locale || locale,
+          report_data: data,
+        });
+        fetchQueries(); // refresca la lista
+      }
+    } catch (e) {
+      console.error('Error reanalizar:', e);
+    } finally {
+      setReanalyzeLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     await signOut();
     router.replace(`/${locale}`);
@@ -352,7 +397,7 @@ export default function PerfilPage() {
                   }}
                 />
               ) : (
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
                   {initials}
                 </div>
               )}
@@ -489,9 +534,23 @@ export default function PerfilPage() {
                             </button>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Link href={`/${locale}`} className="text-xs text-blue-500 hover:text-blue-700">
-                              {t.reanalyze}
-                            </Link>
+                            {/* Botón reanalizar */}
+                            <button
+                              onClick={() => {
+                                if (reanalyzingId === query.id) {
+                                  setReanalyzingId(null);
+                                  setReanalyzeResult(null);
+                                  setReanalyzeInput('');
+                                } else {
+                                  setReanalyzingId(query.id);
+                                  setReanalyzeResult(null);
+                                  setReanalyzeInput('');
+                                }
+                              }}
+                              className="text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                            >
+                              {reanalyzingId === query.id ? 'Cancelar' : t.reanalyze}
+                            </button>
                             <button
                               onClick={() => deleteQuery(query.id)}
                               disabled={deletingId === query.id}
@@ -583,6 +642,79 @@ export default function PerfilPage() {
                               <p className="text-xs text-slate-400 text-center italic">{report.disclaimer}</p>
                             )}
                           </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Panel de reanálisis inline */}
+                    {reanalyzingId === query.id && (
+                      <div className="border-t border-blue-100 bg-blue-50/50 p-4 rounded-b-2xl">
+                        {!reanalyzeResult ? (
+                          <>
+                            <p className="text-xs font-semibold text-blue-700 mb-1">
+                              {locale === 'en' ? 'What has changed?' : locale === 'zh' ? '有什么变化？' : locale === 'ru' ? 'Что изменилось?' : '¿Qué ha cambiado?'}
+                            </p>
+                            <p className="text-xs text-slate-500 mb-3">
+                              {locale === 'en'
+                                ? 'Describe any changes since your last report. We will re-analyse with the new information.'
+                                : locale === 'zh' ? '描述自上次报告以来的任何变化。'
+                                : locale === 'ru' ? 'Опишите любые изменения с момента последнего отчёта.'
+                                : 'Describe cualquier cambio desde tu último informe. Reharemos el análisis con la nueva información.'}
+                            </p>
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 text-xs text-slate-500">
+                              <span className="font-medium text-slate-600">Síntoma original: </span>
+                              {query.description}
+                            </div>
+                            <textarea
+                              value={reanalyzeInput}
+                              onChange={e => setReanalyzeInput(e.target.value)}
+                              placeholder={
+                                locale === 'en' ? 'E.g. The pain has spread to my arm and the fever is higher...'
+                                : locale === 'zh' ? '例如：疼痛扩散到手臂，发烧更严重了...'
+                                : locale === 'ru' ? 'Напр.: Боль распространилась на руку, температура выше...'
+                                : 'Ej: El dolor se ha extendido al brazo y la fiebre es más alta...'
+                              }
+                              rows={3}
+                              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-400 outline-none resize-none mb-3"
+                            />
+                            <button
+                              onClick={() => handleReanalyze(query)}
+                              disabled={reanalyzeLoading || !reanalyzeInput.trim()}
+                              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-medium rounded-xl py-2.5 text-sm transition"
+                            >
+                              {reanalyzeLoading
+                                ? (locale === 'en' ? 'Analysing...' : locale === 'zh' ? '分析中...' : locale === 'ru' ? 'Анализ...' : 'Analizando...')
+                                : (locale === 'en' ? 'Re-analyse' : locale === 'zh' ? '重新分析' : locale === 'ru' ? 'Переанализировать' : 'Reanalizar')}
+                            </button>
+                          </>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className={`rounded-xl p-3 ${SEVERITY_CONFIG[reanalyzeResult.severity || 'bajo']?.bg} ${SEVERITY_CONFIG[reanalyzeResult.severity || 'bajo']?.border} border`}>
+                              <p className={`text-xs font-semibold ${SEVERITY_CONFIG[reanalyzeResult.severity || 'bajo']?.text} mb-1`}>
+                                {SEVERITY_CONFIG[reanalyzeResult.severity || 'bajo']?.icon} {getSeverityLabel(reanalyzeResult.severity || 'bajo', locale)}
+                              </p>
+                              <p className={`text-xs ${SEVERITY_CONFIG[reanalyzeResult.severity || 'bajo']?.text}`}>
+                                {reanalyzeResult.severity_explanation}
+                              </p>
+                            </div>
+                            {reanalyzeResult.action_recommendation && (
+                              <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                                <p className="text-xs font-bold text-blue-700 mb-1">
+                                  {ACTION_LABELS[reanalyzeResult.action_recommendation.primary]?.[locale] || reanalyzeResult.action_recommendation.primary}
+                                </p>
+                                <p className="text-xs text-blue-600">{reanalyzeResult.action_recommendation.explanation}</p>
+                              </div>
+                            )}
+                            <p className="text-xs text-green-600 font-medium text-center">
+                              {locale === 'en' ? '✓ New report saved to history' : locale === 'zh' ? '✓ 新报告已保存' : locale === 'ru' ? '✓ Новый отчёт сохранён' : '✓ Nuevo informe guardado en tu historial'}
+                            </p>
+                            <button
+                              onClick={() => { setReanalyzingId(null); setReanalyzeResult(null); setReanalyzeInput(''); }}
+                              className="w-full text-xs text-slate-400 hover:text-slate-600 transition py-1"
+                            >
+                              {locale === 'en' ? 'Close' : locale === 'zh' ? '关闭' : locale === 'ru' ? 'Закрыть' : 'Cerrar'}
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}
