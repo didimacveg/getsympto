@@ -1,14 +1,25 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { validateInput } from '@/lib/security';
 import { SYSTEM_PROMPT, buildUserPrompt } from '@/lib/prompts';
 import { getUserPlan, checkAndIncrementUsage } from '@/lib/subscription';
-import { analyzeRatelimit } from '@/lib/ratelimit';
+
+const requestLog = new Map();
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000;
+  const maxRequests = 30;
+  const history = (requestLog.get(ip) || []).filter(t => now - t < windowMs);
+  if (history.length >= maxRequests) return true;
+  history.push(now);
+  requestLog.set(ip, history);
+  return false;
+}
 
 const LIMIT_MESSAGES = {
   es: (limit, isPremium) => isPremium
-    ? `Has alcanzado el límite de ${limit} análisis diarios de tu plan. Vuelve mañana.`
+    ? `Has alcanzado el límite de ${limit} análisis diarios. Vuelve mañana.`
     : `Has alcanzado el límite de ${limit} análisis diarios del plan gratuito. Vuelve mañana.`,
   en: (limit, isPremium) => isPremium
     ? `You have reached the daily limit of ${limit} analyses. Come back tomorrow.`
@@ -18,28 +29,12 @@ const LIMIT_MESSAGES = {
 };
 
 export async function POST(request) {
+  // ✅ Cliente Anthropic dentro de la función
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  const authHeader = request.headers.get('authorization');
-
-  // Rate limiting con Upstash (reemplaza el Map en memoria)
-  const identifier = authHeader
-    ? `user_${authHeader.replace('Bearer ', '').slice(-8)}`  // usuario autenticado: por token
-    : `ip_${ip}`;                                             // anónimo: por IP
-
-  const { success, limit, remaining } = await analyzeRatelimit.limit(identifier);
-  if (!success) {
-    return NextResponse.json(
-      { error: 'Has realizado demasiadas consultas. Espera antes de continuar.' },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': limit.toString(),
-          'X-RateLimit-Remaining': remaining.toString(),
-        },
-      }
-    );
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes. Inténtalo más tarde.' }, { status: 429 });
   }
 
   let body;
@@ -51,9 +46,12 @@ export async function POST(request) {
 
   const { zones, zone, description, duration, intensity, locale = 'es' } = body;
 
-  // Límite de uso: siempre activo para usuarios autenticados
+  // Verificar autenticación y límites
+  const authHeader = request.headers.get('authorization');
   if (authHeader) {
     try {
+      // ✅ createClient dentro de la función
+      const { createClient } = await import('@supabase/supabase-js');
       const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -105,6 +103,7 @@ export async function POST(request) {
       const clean = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       parsed = JSON.parse(clean);
     } catch {
+      console.error('JSON parse error:', responseText);
       return NextResponse.json({ error: 'Error procesando la respuesta. Inténtalo de nuevo.' }, { status: 500 });
     }
 
