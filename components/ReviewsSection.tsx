@@ -145,7 +145,7 @@ export default function ReviewsSection() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {reviews.slice(0, 6).map(review => (
+          {reviews.map(review => (
             <div key={review.id} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
               <div className="flex items-start justify-between mb-3">
                 <div>

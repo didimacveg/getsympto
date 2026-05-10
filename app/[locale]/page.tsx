@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import BodyMap from '@/components/BodyMap';
 import SymptomForm from '@/components/SymptomForm';
 import Report from '@/components/Report';
-import ReviewsSection from '@/components/ReviewsSection';
+import ReviewsToggle from '@/components/ReviewsToggle';
 import AuthButton from '@/components/AuthButton';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -320,7 +320,7 @@ export default function Home() {
           </div>
         </section>
 
-        <ReviewsSection />
+        <ReviewsToggle />
 
         <footer className="mt-12 text-center text-xs text-slate-400 pb-6">
           <p>{t('footer_copy')}</p>
