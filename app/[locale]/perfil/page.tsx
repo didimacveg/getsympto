@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useRef } from 'react';
 import { generateReportPDF } from '@/lib/generatePDF';
+import { PREMIUM_ENABLED } from '@/lib/flags'; // ← AÑADIDO
 
 interface ReportData {
   severity: string;
@@ -30,34 +31,44 @@ interface Query {
 }
 
 const ZONE_LABELS: Record<string, { label_es: string; label_en: string; label_zh: string; label_ru: string; emoji: string }> = {
-  cabeza:        { label_es: 'Cabeza',          label_en: 'Head',           label_zh: '头部',   label_ru: 'Голова',      emoji: '🧠' },
-  cuello:        { label_es: 'Cuello',          label_en: 'Neck',           label_zh: '颈部',   label_ru: 'Шея',         emoji: '🔵' },
-  pecho:         { label_es: 'Pecho',           label_en: 'Chest',          label_zh: '胸部',   label_ru: 'Грудь',       emoji: '❤️' },
-  abdomen:       { label_es: 'Abdomen',         label_en: 'Abdomen',        label_zh: '腹部',   label_ru: 'Живот',       emoji: '🫃' },
-  pelvis:        { label_es: 'Pelvis',          label_en: 'Pelvis',         label_zh: '骨盆',   label_ru: 'Таз',         emoji: '🦴' },
-  hombro_izq:   { label_es: 'Hombro izq.',     label_en: 'Left shoulder',  label_zh: '左肩',   label_ru: 'Лев. плечо', emoji: '💪' },
-  hombro_der:   { label_es: 'Hombro der.',     label_en: 'Right shoulder', label_zh: '右肩',   label_ru: 'Пр. плечо',  emoji: '💪' },
-  brazo_izq:    { label_es: 'Brazo izq.',      label_en: 'Left arm',       label_zh: '左上臂', label_ru: 'Лев. рука',  emoji: '💪' },
-  brazo_der:    { label_es: 'Brazo der.',      label_en: 'Right arm',      label_zh: '右上臂', label_ru: 'Пр. рука',   emoji: '💪' },
-  antebrazo_izq:{ label_es: 'Antebrazo izq.',  label_en: 'Left forearm',   label_zh: '左前臂', label_ru: 'Лев. предпл.',emoji: '🦾' },
-  antebrazo_der:{ label_es: 'Antebrazo der.',  label_en: 'Right forearm',  label_zh: '右前臂', label_ru: 'Пр. предпл.', emoji: '🦾' },
-  mano_izq:     { label_es: 'Mano izq.',       label_en: 'Left hand',      label_zh: '左手',   label_ru: 'Лев. кисть', emoji: '✋' },
-  mano_der:     { label_es: 'Mano der.',       label_en: 'Right hand',     label_zh: '右手',   label_ru: 'Пр. кисть',  emoji: '✋' },
-  muslo_izq:    { label_es: 'Muslo izq.',      label_en: 'Left thigh',     label_zh: '左大腿', label_ru: 'Лев. бедро', emoji: '🦵' },
-  muslo_der:    { label_es: 'Muslo der.',      label_en: 'Right thigh',    label_zh: '右大腿', label_ru: 'Пр. бедро',  emoji: '🦵' },
-  rodilla_izq:  { label_es: 'Rodilla izq.',    label_en: 'Left knee',      label_zh: '左膝',   label_ru: 'Лев. колено',emoji: '🦿' },
-  rodilla_der:  { label_es: 'Rodilla der.',    label_en: 'Right knee',     label_zh: '右膝',   label_ru: 'Пр. колeno', emoji: '🦿' },
-  pierna_izq:   { label_es: 'Pierna izq.',     label_en: 'Left leg',       label_zh: '左小腿', label_ru: 'Лев. голень',emoji: '🦵' },
-  pierna_der:   { label_es: 'Pierna der.',     label_en: 'Right leg',      label_zh: '右小腿', label_ru: 'Пр. голень', emoji: '🦵' },
-  pie_izq:      { label_es: 'Pie izq.',        label_en: 'Left foot',      label_zh: '左脚',   label_ru: 'Лев. стопа', emoji: '🦶' },
-  pie_der:      { label_es: 'Pie der.',        label_en: 'Right foot',     label_zh: '右脚',   label_ru: 'Пр. стопа',  emoji: '🦶' },
-  espalda_alta: { label_es: 'Espalda alta',    label_en: 'Upper back',     label_zh: '上背部', label_ru: 'Верх спины', emoji: '🔙' },
-  espalda_media:{ label_es: 'Espalda media',   label_en: 'Mid back',       label_zh: '中背部', label_ru: 'Сред. спины',emoji: '🔙' },
-  lumbar:       { label_es: 'Lumbar',          label_en: 'Lower back',     label_zh: '腰部',   label_ru: 'Поясница',   emoji: '🔙' },
-  gluteo_izq:   { label_es: 'Glúteo izq.',     label_en: 'Left glute',     label_zh: '左臀',   label_ru: 'Лев. ягодица',emoji:'🔙' },
-  gluteo_der:   { label_es: 'Glúteo der.',     label_en: 'Right glute',    label_zh: '右臀',   label_ru: 'Пр. ягодица',emoji: '🔙' },
-  gemelo_izq:   { label_es: 'Gemelo izq.',     label_en: 'Left calf',      label_zh: '左腓肠肌',label_ru:'Лев. икра',  emoji: '🦵' },
-  gemelo_der:   { label_es: 'Gemelo der.',     label_en: 'Right calf',     label_zh: '右腓肠肌',label_ru:'Пр. икра',   emoji: '🦵' },
+  cabeza:        { label_es: 'Cabeza',          label_en: 'Head',           label_zh: '头部',    label_ru: 'Голова',       emoji: '🧠' },
+  cuello:        { label_es: 'Cuello',          label_en: 'Neck',           label_zh: '颈部',    label_ru: 'Шея',          emoji: '🔵' },
+  pecho:         { label_es: 'Pecho',           label_en: 'Chest',          label_zh: '胸部',    label_ru: 'Грудь',        emoji: '❤️' },
+  abdomen:       { label_es: 'Abdomen',         label_en: 'Abdomen',        label_zh: '腹部',    label_ru: 'Живот',        emoji: '🫃' },
+  pelvis:        { label_es: 'Pelvis',          label_en: 'Pelvis',         label_zh: '骨盆',    label_ru: 'Таз',          emoji: '🦴' },
+  hombro_izq:    { label_es: 'Hombro izq.',     label_en: 'Left shoulder',  label_zh: '左肩',    label_ru: 'Лев. плечо',  emoji: '💪' },
+  hombro_der:    { label_es: 'Hombro der.',     label_en: 'Right shoulder', label_zh: '右肩',    label_ru: 'Пр. плечо',   emoji: '💪' },
+  brazo_izq:     { label_es: 'Brazo izq.',      label_en: 'Left arm',       label_zh: '左上臂',  label_ru: 'Лев. рука',   emoji: '💪' },
+  brazo_der:     { label_es: 'Brazo der.',      label_en: 'Right arm',      label_zh: '右上臂',  label_ru: 'Пр. рука',    emoji: '💪' },
+  antebrazo_izq: { label_es: 'Antebrazo izq.',  label_en: 'Left forearm',   label_zh: '左前臂',  label_ru: 'Лев. предпл.',emoji: '🦾' },
+  antebrazo_der: { label_es: 'Antebrazo der.',  label_en: 'Right forearm',  label_zh: '右前臂',  label_ru: 'Пр. предпл.', emoji: '🦾' },
+  mano_izq:      { label_es: 'Mano izq.',       label_en: 'Left hand',      label_zh: '左手',    label_ru: 'Лев. кисть',  emoji: '✋' },
+  mano_der:      { label_es: 'Mano der.',       label_en: 'Right hand',     label_zh: '右手',    label_ru: 'Пр. кисть',   emoji: '✋' },
+  muslo_izq:     { label_es: 'Muslo izq.',      label_en: 'Left thigh',     label_zh: '左大腿',  label_ru: 'Лев. бедро',  emoji: '🦵' },
+  muslo_der:     { label_es: 'Muslo der.',      label_en: 'Right thigh',    label_zh: '右大腿',  label_ru: 'Пр. бедро',   emoji: '🦵' },
+  rodilla_izq:   { label_es: 'Rodilla izq.',    label_en: 'Left knee',      label_zh: '左膝',    label_ru: 'Лев. колено', emoji: '🦿' },
+  rodilla_der:   { label_es: 'Rodilla der.',    label_en: 'Right knee',     label_zh: '右膝',    label_ru: 'Пр. колено',  emoji: '🦿' },
+  pierna_izq:    { label_es: 'Pierna izq.',     label_en: 'Left leg',       label_zh: '左小腿',  label_ru: 'Лев. голень', emoji: '🦵' },
+  pierna_der:    { label_es: 'Pierna der.',     label_en: 'Right leg',      label_zh: '右小腿',  label_ru: 'Пр. голень',  emoji: '🦵' },
+  pie_izq:       { label_es: 'Pie izq.',        label_en: 'Left foot',      label_zh: '左脚',    label_ru: 'Лев. стопа',  emoji: '🦶' },
+  pie_der:       { label_es: 'Pie der.',        label_en: 'Right foot',     label_zh: '右脚',    label_ru: 'Пр. стопа',   emoji: '🦶' },
+  espalda_alta:  { label_es: 'Espalda alta',    label_en: 'Upper back',     label_zh: '上背部',  label_ru: 'Верх спины',  emoji: '🔙' },
+  espalda_media: { label_es: 'Espalda media',   label_en: 'Mid back',       label_zh: '中背部',  label_ru: 'Сред. спины', emoji: '🔙' },
+  lumbar:        { label_es: 'Lumbar',          label_en: 'Lower back',     label_zh: '腰部',    label_ru: 'Поясница',    emoji: '🔙' },
+  gluteo_izq:    { label_es: 'Glúteo izq.',     label_en: 'Left glute',     label_zh: '左臀',    label_ru: 'Лев. ягодица',emoji: '🔙' },
+  gluteo_der:    { label_es: 'Glúteo der.',     label_en: 'Right glute',    label_zh: '右臀',    label_ru: 'Пр. ягодица', emoji: '🔙' },
+  gemelo_izq:    { label_es: 'Gemelo izq.',     label_en: 'Left calf',      label_zh: '左腓肠肌',label_ru: 'Лев. икра',   emoji: '🦵' },
+  gemelo_der:    { label_es: 'Gemelo der.',     label_en: 'Right calf',     label_zh: '右腓肠肌',label_ru: 'Пр. икра',    emoji: '🦵' },
+  // Zonas específicas ← AÑADIDAS
+  ojos:          { label_es: 'Ojos',            label_en: 'Eyes',           label_zh: '眼睛',    label_ru: 'Глаза',       emoji: '👁️' },
+  oidos:         { label_es: 'Oídos',           label_en: 'Ears',           label_zh: '耳朵',    label_ru: 'Уши',         emoji: '👂' },
+  nariz:         { label_es: 'Nariz',           label_en: 'Nose',           label_zh: '鼻子',    label_ru: 'Нос',         emoji: '👃' },
+  garganta:      { label_es: 'Garganta',        label_en: 'Throat',         label_zh: '喉咙',    label_ru: 'Горло',       emoji: '🗣️' },
+  nuca:          { label_es: 'Nuca',            label_en: 'Back of neck',   label_zh: '颈背',    label_ru: 'Затылок',     emoji: '🔙' },
+  muneca_izq:    { label_es: 'Muñeca izq.',     label_en: 'Left wrist',     label_zh: '左手腕',  label_ru: 'Лев. запястье',emoji: '⌚' },
+  muneca_der:    { label_es: 'Muñeca der.',     label_en: 'Right wrist',    label_zh: '右手腕',  label_ru: 'Пр. запястье', emoji: '⌚' },
+  tobillo_izq:   { label_es: 'Tobillo izq.',    label_en: 'Left ankle',     label_zh: '左脚踝',  label_ru: 'Лев. лодыжка',emoji: '🦶' },
+  tobillo_der:   { label_es: 'Tobillo der.',    label_en: 'Right ankle',    label_zh: '右脚踝',  label_ru: 'Пр. lodyžka', emoji: '🦶' },
 };
 
 const SEVERITY_CONFIG: Record<string, { bg: string; text: string; border: string; dot: string; label_es: string; label_en: string; label_zh: string; label_ru: string; icon: string }> = {
@@ -68,16 +79,16 @@ const SEVERITY_CONFIG: Record<string, { bg: string; text: string; border: string
 };
 
 const ACTION_LABELS: Record<string, Record<string, string>> = {
-  observar:              { es: '🏠 Observar en casa',         en: '🏠 Monitor at home',      zh: '🏠 居家观察',    ru: '🏠 Наблюдать дома' },
-  medico_general:        { es: '👨‍⚕️ Consultar médico',         en: '👨‍⚕️ See your GP',          zh: '👨‍⚕️ 看全科医生', ru: '👨‍⚕️ К терапевту' },
-  especialista:          { es: '🏥 Especialista',              en: '🏥 See specialist',        zh: '🏥 专科医生',    ru: '🏥 К специалисту' },
-  urgencias:             { es: '⚠️ Ir a urgencias',           en: '⚠️ Go to emergency',       zh: '⚠️ 去急诊',      ru: '⚠️ В скорую' },
-  emergencia_inmediata:  { es: '🚨 Llamar al 112',            en: '🚨 Call emergency',         zh: '🚨 拨打急救',    ru: '🚨 Вызвать 112' },
+  observar:              { es: '🏠 Observar en casa',   en: '🏠 Monitor at home',  zh: '🏠 居家观察', ru: '🏠 Наблюдать дома' },
+  medico_general:        { es: '👨‍⚕️ Consultar médico',   en: '👨‍⚕️ See your GP',    zh: '👨‍⚕️ 看全科医生',ru: '👨‍⚕️ К терапевту' },
+  especialista:          { es: '🏥 Especialista',        en: '🏥 See specialist',   zh: '🏥 专科医生', ru: '🏥 К специалисту' },
+  urgencias:             { es: '⚠️ Ir a urgencias',      en: '⚠️ Go to emergency',  zh: '⚠️ 去急诊',   ru: '⚠️ В скорую' },
+  emergencia_inmediata:  { es: '🚨 Llamar al 112',       en: '🚨 Call emergency',   zh: '🚨 拨打急救', ru: '🚨 Вызвать 112' },
 };
 
 const FREQ_LABELS: Record<string, Record<string, string>> = {
   común:        { es: 'Frecuente',        en: 'Common',      zh: '常见',   ru: 'Часто' },
-  menos_común:  { es: 'Menos frecuente',  en: 'Less common', zh: '较少见', ru: 'Реже' },
+  menos_común:  { es: 'Menos frecuente',  en: 'Less common', zh: '较少见', ru: 'Реже'  },
   rara:         { es: 'Poco frecuente',   en: 'Rare',        zh: '罕见',   ru: 'Редко' },
 };
 
@@ -90,16 +101,12 @@ const L = {
     no_queries: 'Aún no tienes informes guardados.',
     no_queries_sub: 'Analiza un síntoma para ver tus informes aquí.',
     analyze_now: 'Analizar un síntoma →',
-    view_report: 'Ver informe completo',
-    hide_report: 'Ocultar informe',
-    possible_contexts: 'Posibles contextos',
-    recommendation: 'Recomendación',
-    red_flags: 'Señales de alarma',
-    general_info: 'Información general',
-    disclaimer_label: 'Aviso',
-    timeframe: 'Cuándo actuar',
-    no_report: 'Informe no disponible para esta consulta.',
-    stats_title: 'Resumen',
+    view_report: 'Ver informe completo', hide_report: 'Ocultar informe',
+    possible_contexts: 'Posibles contextos', recommendation: 'Recomendación',
+    red_flags: 'Señales de alarma', general_info: 'Información general',
+    disclaimer_label: 'Aviso', timeframe: 'Cuándo actuar',
+    no_report: 'Informe no disponible para esta consulta.', stats_title: 'Resumen',
+    premium_required: 'Solo Premium',
   },
   en: {
     title: 'My profile', back: '← Home', logout: 'Sign out',
@@ -109,16 +116,12 @@ const L = {
     no_queries: 'No reports saved yet.',
     no_queries_sub: 'Analyse a symptom to see your reports here.',
     analyze_now: 'Analyse a symptom →',
-    view_report: 'View full report',
-    hide_report: 'Hide report',
-    possible_contexts: 'Possible contexts',
-    recommendation: 'Recommendation',
-    red_flags: 'Warning signs',
-    general_info: 'General information',
-    disclaimer_label: 'Notice',
-    timeframe: 'When to act',
-    no_report: 'Report not available for this query.',
-    stats_title: 'Summary',
+    view_report: 'View full report', hide_report: 'Hide report',
+    possible_contexts: 'Possible contexts', recommendation: 'Recommendation',
+    red_flags: 'Warning signs', general_info: 'General information',
+    disclaimer_label: 'Notice', timeframe: 'When to act',
+    no_report: 'Report not available for this query.', stats_title: 'Summary',
+    premium_required: 'Premium only',
   },
   zh: {
     title: '我的个人资料', back: '← 主页', logout: '退出登录',
@@ -128,16 +131,12 @@ const L = {
     no_queries: '还没有保存的报告。',
     no_queries_sub: '分析症状以在此处查看您的报告。',
     analyze_now: '分析症状 →',
-    view_report: '查看完整报告',
-    hide_report: '隐藏报告',
-    possible_contexts: '可能的情况',
-    recommendation: '建议',
-    red_flags: '警告信号',
-    general_info: '一般信息',
-    disclaimer_label: '注意',
-    timeframe: '何时采取行动',
-    no_report: '此查询没有可用的报告。',
-    stats_title: '摘要',
+    view_report: '查看完整报告', hide_report: '隐藏报告',
+    possible_contexts: '可能的情况', recommendation: '建议',
+    red_flags: '警告信号', general_info: '一般信息',
+    disclaimer_label: '注意', timeframe: '何时采取行动',
+    no_report: '此查询没有可用的报告。', stats_title: '摘要',
+    premium_required: '仅限高级版',
   },
   ru: {
     title: 'Мой профиль', back: '← Главная', logout: 'Выйти',
@@ -147,16 +146,12 @@ const L = {
     no_queries: 'Отчётов пока нет.',
     no_queries_sub: 'Проанализируйте симптом, чтобы увидеть отчёты здесь.',
     analyze_now: 'Анализировать симптом →',
-    view_report: 'Показать полный отчёт',
-    hide_report: 'Скрыть отчёт',
-    possible_contexts: 'Возможные причины',
-    recommendation: 'Рекомендация',
-    red_flags: 'Тревожные признаки',
-    general_info: 'Общая информация',
-    disclaimer_label: 'Уведомление',
-    timeframe: 'Когда действовать',
-    no_report: 'Отчёт недоступен для этого запроса.',
-    stats_title: 'Сводка',
+    view_report: 'Показать полный отчёт', hide_report: 'Скрыть отчёт',
+    possible_contexts: 'Возможные причины', recommendation: 'Рекомендация',
+    red_flags: 'Тревожные признаки', general_info: 'Общая информация',
+    disclaimer_label: 'Уведомление', timeframe: 'Когда действовать',
+    no_report: 'Отчёт недоступен для этого запроса.', stats_title: 'Сводка',
+    premium_required: 'Только Premium',
   },
 };
 
@@ -202,6 +197,7 @@ export default function PerfilPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [userPlan, setUserPlan] = useState<'free' | 'premium'>('free'); // ← AÑADIDO
 
   // Reanalyze states
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
@@ -213,11 +209,7 @@ export default function PerfilPage() {
     if (!loading && !user) router.replace(`/${locale}`);
   }, [user, loading, locale, router]);
 
-  useEffect(() => {
-    if (user) fetchQueries();
-  }, [user]);
-
-  // Load avatar — falls back gracefully if profile row missing
+  // ← SEPARADO: useEffect exclusivo para cargar el avatar
   useEffect(() => {
     if (!user) return;
     supabase
@@ -227,13 +219,34 @@ export default function PerfilPage() {
       .single()
       .then(({ data, error }) => {
         if (error) console.error('Error cargando perfil:', error.message);
-        if (data?.avatar_url) {
-          setAvatarUrl(data.avatar_url);
-        }
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
       });
   }, [user]);
 
-  // Updated avatar upload with full error logging
+  useEffect(() => {
+    if (user) {
+      fetchQueries();
+
+      // ← AÑADIDO: Cargar plan de suscripción
+      if (PREMIUM_ENABLED) {
+        supabase.from('subscriptions')
+          .select('plan, status, current_period_end')
+          .eq('user_id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (data?.plan === 'premium' && data?.status === 'active') {
+              if (!data.current_period_end || new Date(data.current_period_end) > new Date()) {
+                setUserPlan('premium');
+              }
+            }
+          });
+      } else {
+        setUserPlan('premium'); // cuando el interruptor está off, todos tienen premium
+      }
+    }
+  }, [user]);
+
+  // ← ACTUALIZADO: handleAvatarUpload con logs completos
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -243,7 +256,6 @@ export default function PerfilPage() {
     }
     setUploadingAvatar(true);
     try {
-      // Fixed path without variable extension to avoid stale cache misses
       const path = `${user.id}/avatar`;
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -260,7 +272,6 @@ export default function PerfilPage() {
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(path);
-      // Timestamp cache-busting so the browser reloads the new image
       const publicUrl = `${urlData.publicUrl}?v=${Date.now()}`;
       console.log('✅ URL pública:', publicUrl);
       const { error: updateError } = await supabase
@@ -283,10 +294,8 @@ export default function PerfilPage() {
 
   const fetchQueries = async () => {
     const { data } = await supabase
-      .from('user_queries')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100);
+      .from('user_queries').select('*')
+      .order('created_at', { ascending: false }).limit(100);
     setQueries(data || []);
     setLoadingQueries(false);
   };
@@ -306,31 +315,26 @@ export default function PerfilPage() {
     setReanalyzeResult(null);
     try {
       const combinedDescription = `${query.description}. Actualizacion: ${reanalyzeInput.trim()}`;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       const res = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          zones: [query.zone],
-          description: combinedDescription,
-          locale: query.locale || locale,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ zones: [query.zone], description: combinedDescription, locale: query.locale || locale }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setReanalyzeResult(data);
-
-      // Guardar el nuevo informe
       if (user) {
         await supabase.from('user_queries').insert({
-          user_id: user.id,
-          zone: query.zone,
-          description: combinedDescription,
-          severity: data.severity,
-          action: data.action_recommendation?.primary || null,
-          locale: query.locale || locale,
-          report_data: data,
+          user_id: user.id, zone: query.zone, description: combinedDescription,
+          severity: data.severity, action: data.action_recommendation?.primary || null,
+          locale: query.locale || locale, report_data: data,
         });
-        fetchQueries(); // refresca la lista
+        fetchQueries();
       }
     } catch (e) {
       console.error('Error reanalizar:', e);
@@ -339,10 +343,7 @@ export default function PerfilPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut();
-    router.replace(`/${locale}`);
-  };
+  const handleLogout = async () => { await signOut(); router.replace(`/${locale}`); };
 
   if (loading || !user) {
     return (
@@ -360,15 +361,15 @@ export default function PerfilPage() {
   );
 
   const severities = ['bajo', 'medio', 'alto', 'urgente'];
-  const filteredQueries = filterSeverity === 'all'
-    ? queries
-    : queries.filter(q => q.severity === filterSeverity);
-
+  const filteredQueries = filterSeverity === 'all' ? queries : queries.filter(q => q.severity === filterSeverity);
   const monthCount = thisMonthCount(queries);
   const urgentCount = queries.filter(q => q.severity === 'urgente' || q.severity === 'alto').length;
 
+  // ← AÑADIDO: helper para saber si una feature está disponible
+  const canUsePremiumFeature = !PREMIUM_ENABLED || userPlan === 'premium';
+
   return (
-    <main className="min-h-screen bg-linear-to-b from-slate-50 to-white">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-4xl mx-auto px-4 py-10">
 
         {/* Nav */}
@@ -384,33 +385,22 @@ export default function PerfilPage() {
         {/* Profile header */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
           <div className="flex items-center gap-5">
-            {/* Avatar with upload */}
             <div className="relative shrink-0 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  className="w-16 h-16 rounded-2xl object-cover shadow-md"
-                  onError={() => {
-                    console.error('❌ Error cargando imagen desde URL:', avatarUrl);
-                    setAvatarUrl(null); // fall back to initials
-                  }}
-                />
+                <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-2xl object-cover shadow-md"
+                  onError={() => { console.error('❌ Error cargando imagen:', avatarUrl); setAvatarUrl(null); }} />
               ) : (
-                <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
                   {initials}
                 </div>
               )}
               <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                {uploadingAvatar ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <span className="text-white text-xs font-medium">📷</span>
-                )}
+                {uploadingAvatar
+                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <span className="text-white text-xs font-medium">📷</span>}
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
-
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-slate-800 truncate">{name}</h1>
               <p className="text-slate-400 text-sm truncate">{user.email}</p>
@@ -418,7 +408,6 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-slate-100">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">{queries.length}</p>
@@ -439,22 +428,16 @@ export default function PerfilPage() {
         <div>
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h2 className="text-lg font-bold text-slate-800">{t.history}</h2>
-            {/* Severity filter */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              <button
-                onClick={() => setFilterSeverity('all')}
-                className={`text-xs px-3 py-1 rounded-full font-medium transition ${filterSeverity === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-              >
+              <button onClick={() => setFilterSeverity('all')}
+                className={`text-xs px-3 py-1 rounded-full font-medium transition ${filterSeverity === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
                 {t.filter_all}
               </button>
               {severities.map(sev => {
                 const s = SEVERITY_CONFIG[sev];
                 return (
-                  <button
-                    key={sev}
-                    onClick={() => setFilterSeverity(sev)}
-                    className={`text-xs px-3 py-1 rounded-full font-medium transition border ${filterSeverity === sev ? `${s.bg} ${s.text} ${s.border}` : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
-                  >
+                  <button key={sev} onClick={() => setFilterSeverity(sev)}
+                    className={`text-xs px-3 py-1 rounded-full font-medium transition border ${filterSeverity === sev ? `${s.bg} ${s.text} ${s.border}` : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}>
                     {s.icon} {getSeverityLabel(sev, locale)}
                   </button>
                 );
@@ -464,19 +447,14 @@ export default function PerfilPage() {
 
           {loadingQueries ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="bg-white rounded-2xl p-5 h-24 animate-pulse border border-slate-100" />
-              ))}
+              {[1,2,3].map(i => <div key={i} className="bg-white rounded-2xl p-5 h-24 animate-pulse border border-slate-100" />)}
             </div>
           ) : filteredQueries.length === 0 ? (
             <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm">
               <p className="text-5xl mb-4">🔍</p>
               <p className="text-slate-700 font-semibold mb-1">{t.no_queries}</p>
               <p className="text-slate-400 text-sm mb-6">{t.no_queries_sub}</p>
-              <Link
-                href={`/${locale}`}
-                className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition inline-block"
-              >
+              <Link href={`/${locale}`} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition inline-block">
                 {t.analyze_now}
               </Link>
             </div>
@@ -494,7 +472,6 @@ export default function PerfilPage() {
                 return (
                   <div key={query.id} className={`bg-white rounded-2xl border shadow-sm transition-all ${isExpanded ? `${sev.border} border-2` : 'border-slate-100 hover:border-slate-200'}`}>
 
-                    {/* Header row */}
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -516,46 +493,54 @@ export default function PerfilPage() {
                           </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex flex-col items-end gap-2 shrink-0">
                           <div className="flex items-center gap-2 mt-1">
                             <button
                               onClick={() => setExpandedId(isExpanded ? null : query.id)}
-                              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition ${isExpanded ? `${sev.bg} ${sev.text}` : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
-                            >
+                              className={`text-xs font-medium px-3 py-1.5 rounded-lg transition ${isExpanded ? `${sev.bg} ${sev.text}` : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}>
                               {isExpanded ? t.hide_report : t.view_report}
                             </button>
-                            <button
-                              onClick={() => generateReportPDF({ ...query, locale })}
-                              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition"
-                              title="Descargar PDF"
-                            >
-                              ⬇ PDF
-                            </button>
+
+                            {/* ← ACTUALIZADO: botón PDF con gate premium */}
+                            {canUsePremiumFeature ? (
+                              <button
+                                onClick={() => generateReportPDF({ ...query, locale })}
+                                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition"
+                                title="Descargar PDF">
+                                ⬇ PDF
+                              </button>
+                            ) : (
+                              <Link href={`/${locale}/premium`}
+                                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 transition"
+                                title={t.premium_required}>
+                                🔒 PDF
+                              </Link>
+                            )}
                           </div>
+
                           <div className="flex items-center gap-2">
-                            {/* Botón reanalizar */}
-                            <button
-                              onClick={() => {
-                                if (reanalyzingId === query.id) {
-                                  setReanalyzingId(null);
-                                  setReanalyzeResult(null);
-                                  setReanalyzeInput('');
-                                } else {
-                                  setReanalyzingId(query.id);
-                                  setReanalyzeResult(null);
-                                  setReanalyzeInput('');
-                                }
-                              }}
-                              className="text-xs text-blue-500 hover:text-blue-700 transition-colors"
-                            >
-                              {reanalyzingId === query.id ? 'Cancelar' : t.reanalyze}
-                            </button>
-                            <button
-                              onClick={() => deleteQuery(query.id)}
-                              disabled={deletingId === query.id}
-                              className="text-xs text-slate-300 hover:text-red-400 transition disabled:opacity-50"
-                            >
+                            {/* ← ACTUALIZADO: botón reanalizar con gate premium */}
+                            {canUsePremiumFeature ? (
+                              <button
+                                onClick={() => {
+                                  if (reanalyzingId === query.id) {
+                                    setReanalyzingId(null); setReanalyzeResult(null); setReanalyzeInput('');
+                                  } else {
+                                    setReanalyzingId(query.id); setReanalyzeResult(null); setReanalyzeInput('');
+                                  }
+                                }}
+                                className="text-xs text-blue-500 hover:text-blue-700 transition-colors">
+                                {reanalyzingId === query.id ? 'Cancelar' : t.reanalyze}
+                              </button>
+                            ) : (
+                              <Link href={`/${locale}/premium`}
+                                className="text-xs text-amber-500 hover:text-amber-700 transition-colors">
+                                🔒 {t.reanalyze}
+                              </Link>
+                            )}
+
+                            <button onClick={() => deleteQuery(query.id)} disabled={deletingId === query.id}
+                              className="text-xs text-slate-300 hover:text-red-400 transition disabled:opacity-50">
                               {deletingId === query.id ? '...' : t.delete}
                             </button>
                           </div>
@@ -563,21 +548,18 @@ export default function PerfilPage() {
                       </div>
                     </div>
 
-                    {/* Expanded report */}
+                    {/* Informe expandido */}
                     {isExpanded && (
                       <div className="border-t border-slate-100 p-5 space-y-5">
                         {!report ? (
                           <p className="text-sm text-slate-400 text-center py-4">{t.no_report}</p>
                         ) : (
                           <>
-                            {/* Severity explanation */}
                             {report.severity_explanation && (
                               <div className={`rounded-xl p-4 ${sev.bg} ${sev.border} border`}>
                                 <p className={`text-sm font-medium ${sev.text}`}>{report.severity_explanation}</p>
                               </div>
                             )}
-
-                            {/* Possible contexts */}
                             {report.possible_contexts && report.possible_contexts.length > 0 && (
                               <div>
                                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t.possible_contexts}</h3>
@@ -601,43 +583,36 @@ export default function PerfilPage() {
                                 </div>
                               </div>
                             )}
-
-                            {/* Recommendation */}
                             {report.action_recommendation && (
                               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                                 <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-2">{t.recommendation}</h3>
-                                <p className="text-sm text-blue-800 font-medium mb-1">{ACTION_LABELS[report.action_recommendation.primary]?.[locale] || report.action_recommendation.primary}</p>
+                                <p className="text-sm text-blue-800 font-medium mb-1">
+                                  {ACTION_LABELS[report.action_recommendation.primary]?.[locale] || report.action_recommendation.primary}
+                                </p>
                                 <p className="text-xs text-blue-600 mb-1">{report.action_recommendation.explanation}</p>
                                 {report.action_recommendation.timeframe && (
                                   <p className="text-xs text-blue-500 font-medium">⏱ {t.timeframe}: {report.action_recommendation.timeframe}</p>
                                 )}
                               </div>
                             )}
-
-                            {/* Red flags */}
                             {report.red_flags && report.red_flags.length > 0 && (
                               <div className="bg-red-50 border border-red-100 rounded-xl p-4">
                                 <h3 className="text-xs font-bold text-red-600 uppercase tracking-wide mb-3">⚠️ {t.red_flags}</h3>
                                 <ul className="space-y-1.5">
                                   {report.red_flags.map((flag, i) => (
                                     <li key={i} className="flex items-start gap-2 text-xs text-red-700">
-                                      <span className="shrink-0 mt-0.5">•</span>
-                                      {flag}
+                                      <span className="shrink-0 mt-0.5">•</span>{flag}
                                     </li>
                                   ))}
                                 </ul>
                               </div>
                             )}
-
-                            {/* General info */}
                             {report.general_info && (
                               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">{t.general_info}</h3>
                                 <p className="text-xs text-slate-600 leading-relaxed">{report.general_info}</p>
                               </div>
                             )}
-
-                            {/* Disclaimer */}
                             {report.disclaimer && (
                               <p className="text-xs text-slate-400 text-center italic">{report.disclaimer}</p>
                             )}
@@ -646,8 +621,8 @@ export default function PerfilPage() {
                       </div>
                     )}
 
-                    {/* Panel de reanálisis inline */}
-                    {reanalyzingId === query.id && (
+                    {/* Panel reanálisis — solo visible si canUsePremiumFeature */}
+                    {reanalyzingId === query.id && canUsePremiumFeature && (
                       <div className="border-t border-blue-100 bg-blue-50/50 p-4 rounded-b-2xl">
                         {!reanalyzeResult ? (
                           <>
@@ -655,13 +630,12 @@ export default function PerfilPage() {
                               {locale === 'en' ? 'What has changed?' : locale === 'zh' ? '有什么变化？' : locale === 'ru' ? 'Что изменилось?' : '¿Qué ha cambiado?'}
                             </p>
                             <p className="text-xs text-slate-500 mb-3">
-                              {locale === 'en'
-                                ? 'Describe any changes since your last report. We will re-analyse with the new information.'
+                              {locale === 'en' ? 'Describe any changes since your last report. We will re-analyse with the new information.'
                                 : locale === 'zh' ? '描述自上次报告以来的任何变化。'
                                 : locale === 'ru' ? 'Опишите любые изменения с момента последнего отчёта.'
                                 : 'Describe cualquier cambio desde tu último informe. Reharemos el análisis con la nueva información.'}
                             </p>
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 text-xs text-slate-500">
+                            <div className="bg-white border border-slate-200 rounded-xl p-3 mb-3 text-xs text-slate-500">
                               <span className="font-medium text-slate-600">
                                 {locale === 'en' ? 'Original symptom: ' : locale === 'zh' ? '原始症状：' : locale === 'ru' ? 'Исходный симптом: ' : 'Síntoma original: '}
                               </span>
@@ -682,8 +656,7 @@ export default function PerfilPage() {
                             <button
                               onClick={() => handleReanalyze(query)}
                               disabled={reanalyzeLoading || !reanalyzeInput.trim()}
-                              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-medium rounded-xl py-2.5 text-sm transition"
-                            >
+                              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-medium rounded-xl py-2.5 text-sm transition">
                               {reanalyzeLoading
                                 ? (locale === 'en' ? 'Analysing...' : locale === 'zh' ? '分析中...' : locale === 'ru' ? 'Анализ...' : 'Analizando...')
                                 : (locale === 'en' ? 'Re-analyse' : locale === 'zh' ? '重新分析' : locale === 'ru' ? 'Переанализировать' : 'Reanalizar')}
@@ -712,8 +685,7 @@ export default function PerfilPage() {
                             </p>
                             <button
                               onClick={() => { setReanalyzingId(null); setReanalyzeResult(null); setReanalyzeInput(''); }}
-                              className="w-full text-xs text-slate-400 hover:text-slate-600 transition py-1"
-                            >
+                              className="w-full text-xs text-slate-400 hover:text-slate-600 transition py-1">
                               {locale === 'en' ? 'Close' : locale === 'zh' ? '关闭' : locale === 'ru' ? 'Закрыть' : 'Cerrar'}
                             </button>
                           </div>

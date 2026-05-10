@@ -9,6 +9,7 @@ import ReviewsSection from '@/components/ReviewsSection';
 import AuthButton from '@/components/AuthButton';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { PREMIUM_ENABLED } from '@/lib/flags';
 
 const SEO_ZONES_ES = [
   { zona: 'Cabeza', ejemplos: 'dolor de cabeza, migraña, presión en las sienes' },
@@ -55,6 +56,7 @@ export default function Home() {
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,30 +75,40 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       const res = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ zones: selectedZones, locale, ...symptomData }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error');
+      if (!res.ok) {
+        // Si es por límite de uso y necesita premium
+        if (data.upgrade_required) {
+          setError(`${data.error} → `);
+          setUpgradeRequired(true);
+        } else {
+          setError(data.error || 'Error');
+        }
+        return;
+      }
+      setUpgradeRequired(false);
       setReport(data);
-
       if (user && data.severity) {
         const { error: insertError } = await supabase.from('user_queries').insert({
           user_id: user.id,
-          zone: selectedZones[0] || 'cabeza',
+          zone: selectedZones[0],
           description: symptomData.description,
           severity: data.severity,
           action: data.action_recommendation?.primary || null,
           locale,
           report_data: data,
         });
-        if (insertError) {
-          console.error('❌ Error guardando informe:', insertError.message, insertError.details);
-        } else {
-          console.log('✅ Informe guardado correctamente');
-        }
+        if (insertError) console.error('Error guardando informe:', insertError.message);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error desconocido');
@@ -109,6 +121,7 @@ export default function Home() {
     setReport(null);
     setSelectedZones([]);
     setError(null);
+    setUpgradeRequired(false);
   };
 
   return (
@@ -136,6 +149,14 @@ export default function Home() {
             >
               Blog
             </Link>
+            {PREMIUM_ENABLED && !user && (
+              <Link
+                href={`/${locale}/premium`}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors hidden sm:block px-3 py-1.5"
+              >
+                {locale === 'zh' ? '升级' : locale === 'ru' ? 'Premium' : locale === 'en' ? 'Upgrade' : 'Premium'}
+              </Link>
+            )}
             <AuthButton />
           </div>
         </nav>
@@ -174,6 +195,7 @@ export default function Home() {
                 setSelectedZones(zones);
                 setReport(null);
                 setError(null);
+                setUpgradeRequired(false);
               }}
               selectedZones={selectedZones as string[]}
             />
@@ -184,6 +206,14 @@ export default function Home() {
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-red-600 text-sm">
                 {error}
+                {upgradeRequired && PREMIUM_ENABLED && (
+                  <Link
+                    href={`/${locale}/premium`}
+                    className="inline-block mt-2 bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-medium hover:bg-blue-700 transition"
+                  >
+                    Ver planes →
+                  </Link>
+                )}
               </div>
             )}
 
