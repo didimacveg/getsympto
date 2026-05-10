@@ -7,6 +7,7 @@ import SymptomForm from '@/components/SymptomForm';
 import Report from '@/components/Report';
 import ReviewsSection from '@/components/ReviewsSection';
 import AuthButton from '@/components/AuthButton';
+import PremiumUpgradeModal from '@/components/PremiumUpgradeModal';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { PREMIUM_ENABLED } from '@/lib/flags';
@@ -56,7 +57,7 @@ export default function Home() {
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [upgradeRequired, setUpgradeRequired] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -87,16 +88,14 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) {
-        // Si es por límite de uso y necesita premium
         if (data.upgrade_required) {
-          setError(`${data.error} → `);
-          setUpgradeRequired(true);
+          // ✅ Muestra modal en vez de error en línea
+          setShowUpgradeModal(true);
         } else {
           setError(data.error || 'Error');
         }
         return;
       }
-      setUpgradeRequired(false);
       setReport(data);
       if (user && data.severity) {
         const { error: insertError } = await supabase.from('user_queries').insert({
@@ -121,7 +120,6 @@ export default function Home() {
     setReport(null);
     setSelectedZones([]);
     setError(null);
-    setUpgradeRequired(false);
   };
 
   return (
@@ -155,7 +153,8 @@ export default function Home() {
             >
               Blog
             </Link>
-            {PREMIUM_ENABLED && !user && (
+            {/* ✅ Siempre visible cuando premium está activo, sin importar si hay usuario */}
+            {PREMIUM_ENABLED && (
               <Link
                 href={`/${locale}/premium`}
                 className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors hidden sm:block px-3 py-1.5"
@@ -201,7 +200,6 @@ export default function Home() {
                 setSelectedZones(zones);
                 setReport(null);
                 setError(null);
-                setUpgradeRequired(false);
               }}
               selectedZones={selectedZones as string[]}
             />
@@ -212,14 +210,6 @@ export default function Home() {
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-red-600 text-sm">
                 {error}
-                {upgradeRequired && PREMIUM_ENABLED && (
-                  <Link
-                    href={`/${locale}/premium`}
-                    className="inline-block mt-2 bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-medium hover:bg-blue-700 transition"
-                  >
-                    Ver planes →
-                  </Link>
-                )}
               </div>
             )}
 
@@ -333,6 +323,11 @@ export default function Home() {
           <p className="mt-1">{t('footer_disclaimer')}</p>
         </footer>
       </div>
+
+      {/* ✅ Modal de upgrade cuando se llega al límite */}
+      {showUpgradeModal && (
+        <PremiumUpgradeModal onClose={() => setShowUpgradeModal(false)} />
+      )}
     </main>
   );
 }

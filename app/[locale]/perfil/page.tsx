@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useRef } from 'react';
 import { generateReportPDF } from '@/lib/generatePDF';
-import { PREMIUM_ENABLED } from '@/lib/flags'; // ← AÑADIDO
+import { PREMIUM_ENABLED } from '@/lib/flags';
 
 interface ReportData {
   severity: string;
@@ -59,7 +59,6 @@ const ZONE_LABELS: Record<string, { label_es: string; label_en: string; label_zh
   gluteo_der:    { label_es: 'Glúteo der.',     label_en: 'Right glute',    label_zh: '右臀',    label_ru: 'Пр. ягодица', emoji: '🔙' },
   gemelo_izq:    { label_es: 'Gemelo izq.',     label_en: 'Left calf',      label_zh: '左腓肠肌',label_ru: 'Лев. икра',   emoji: '🦵' },
   gemelo_der:    { label_es: 'Gemelo der.',     label_en: 'Right calf',     label_zh: '右腓肠肌',label_ru: 'Пр. икра',    emoji: '🦵' },
-  // Zonas específicas ← AÑADIDAS
   ojos:          { label_es: 'Ojos',            label_en: 'Eyes',           label_zh: '眼睛',    label_ru: 'Глаза',       emoji: '👁️' },
   oidos:         { label_es: 'Oídos',           label_en: 'Ears',           label_zh: '耳朵',    label_ru: 'Уши',         emoji: '👂' },
   nariz:         { label_es: 'Nariz',           label_en: 'Nose',           label_zh: '鼻子',    label_ru: 'Нос',         emoji: '👃' },
@@ -197,7 +196,7 @@ export default function PerfilPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [userPlan, setUserPlan] = useState<'free' | 'premium'>('free'); // ← AÑADIDO
+  const [userPlan, setUserPlan] = useState<'free' | 'premium'>('free');
 
   // Reanalyze states
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
@@ -209,7 +208,6 @@ export default function PerfilPage() {
     if (!loading && !user) router.replace(`/${locale}`);
   }, [user, loading, locale, router]);
 
-  // ← SEPARADO: useEffect exclusivo para cargar el avatar
   useEffect(() => {
     if (!user) return;
     supabase
@@ -227,7 +225,6 @@ export default function PerfilPage() {
     if (user) {
       fetchQueries();
 
-      // ← AÑADIDO: Cargar plan de suscripción
       if (PREMIUM_ENABLED) {
         supabase.from('subscriptions')
           .select('plan, status, current_period_end')
@@ -241,12 +238,11 @@ export default function PerfilPage() {
             }
           });
       } else {
-        setUserPlan('premium'); // cuando el interruptor está off, todos tienen premium
+        setUserPlan('premium');
       }
     }
   }, [user]);
 
-  // ← ACTUALIZADO: handleAvatarUpload con logs completos
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -259,21 +255,15 @@ export default function PerfilPage() {
       const path = `${user.id}/avatar`;
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, file, {
-          upsert: true,
-          contentType: file.type,
-        });
+        .upload(path, file, { upsert: true, contentType: file.type });
       if (uploadError) {
         console.error('❌ Error en upload:', uploadError.message);
         alert('Error subiendo imagen: ' + uploadError.message);
         setUploadingAvatar(false);
         return;
       }
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(path);
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
       const publicUrl = `${urlData.publicUrl}?v=${Date.now()}`;
-      console.log('✅ URL pública:', publicUrl);
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -282,7 +272,6 @@ export default function PerfilPage() {
         console.error('❌ Error guardando URL en profiles:', updateError.message);
         alert('Error guardando avatar: ' + updateError.message);
       } else {
-        console.log('✅ Avatar guardado en profiles');
         setAvatarUrl(publicUrl);
       }
     } catch (err) {
@@ -365,11 +354,10 @@ export default function PerfilPage() {
   const monthCount = thisMonthCount(queries);
   const urgentCount = queries.filter(q => q.severity === 'urgente' || q.severity === 'alto').length;
 
-  // ← AÑADIDO: helper para saber si una feature está disponible
   const canUsePremiumFeature = !PREMIUM_ENABLED || userPlan === 'premium';
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <main className="min-h-screen bg-linear-to-b from-slate-50 to-white">
       <div className="max-w-4xl mx-auto px-4 py-10">
 
         {/* Nav */}
@@ -390,7 +378,7 @@ export default function PerfilPage() {
                 <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-2xl object-cover shadow-md"
                   onError={() => { console.error('❌ Error cargando imagen:', avatarUrl); setAvatarUrl(null); }} />
               ) : (
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
                   {initials}
                 </div>
               )}
@@ -408,6 +396,7 @@ export default function PerfilPage() {
             </div>
           </div>
 
+          {/* Stats grid */}
           <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-slate-100">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">{queries.length}</p>
@@ -422,6 +411,54 @@ export default function PerfilPage() {
               <p className="text-xs text-slate-400">{locale === 'en' ? 'high/urgent' : locale === 'zh' ? '高/紧急' : locale === 'ru' ? 'высок./сроч.' : 'alto/urgente'}</p>
             </div>
           </div>
+
+          {/* Subscription management — Premium users */}
+          {PREMIUM_ENABLED && userPlan === 'premium' && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <a
+                href="https://app.lemonsqueezy.com/my-orders"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between w-full bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 hover:bg-blue-100 transition group"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">⭐</span>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-800">
+                      {locale === 'en' ? 'Manage my subscription' : locale === 'zh' ? '管理我的订阅' : locale === 'ru' ? 'Управление подпиской' : 'Gestionar mi suscripción'}
+                    </p>
+                    <p className="text-xs text-blue-500">
+                      {locale === 'en' ? 'Cancel, change payment method and more' : locale === 'zh' ? '取消、更改付款方式等' : locale === 'ru' ? 'Отмена, смена способа оплаты и др.' : 'Cancelar, cambiar método de pago y más'}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-blue-300 group-hover:text-blue-500 transition text-lg">→</span>
+              </a>
+            </div>
+          )}
+
+          {/* Subscription management — Free users */}
+          {PREMIUM_ENABLED && userPlan === 'free' && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <Link
+                href={`/${locale}/premium`}
+                className="flex items-center justify-between w-full bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 hover:bg-amber-100 transition group"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">🔒</span>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800">
+                      {locale === 'en' ? 'Upgrade to Premium' : locale === 'zh' ? '升级到高级版' : locale === 'ru' ? 'Перейти на Premium' : 'Hazte Premium'}
+                    </p>
+                    <p className="text-xs text-amber-600">
+                      {locale === 'en' ? '10 analyses/day, PDF reports and more' : locale === 'zh' ? '每天10次分析、PDF报告等' : locale === 'ru' ? '10 анализов/день, PDF-отчёты и др.' : '10 análisis/día, informes PDF y más'}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-amber-300 group-hover:text-amber-500 transition text-lg">→</span>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* History */}
@@ -501,7 +538,6 @@ export default function PerfilPage() {
                               {isExpanded ? t.hide_report : t.view_report}
                             </button>
 
-                            {/* ← ACTUALIZADO: botón PDF con gate premium */}
                             {canUsePremiumFeature ? (
                               <button
                                 onClick={() => generateReportPDF({ ...query, locale })}
@@ -519,7 +555,6 @@ export default function PerfilPage() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {/* ← ACTUALIZADO: botón reanalizar con gate premium */}
                             {canUsePremiumFeature ? (
                               <button
                                 onClick={() => {
@@ -621,7 +656,7 @@ export default function PerfilPage() {
                       </div>
                     )}
 
-                    {/* Panel reanálisis — solo visible si canUsePremiumFeature */}
+                    {/* Panel reanálisis */}
                     {reanalyzingId === query.id && canUsePremiumFeature && (
                       <div className="border-t border-blue-100 bg-blue-50/50 p-4 rounded-b-2xl">
                         {!reanalyzeResult ? (
