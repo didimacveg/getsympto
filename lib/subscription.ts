@@ -1,18 +1,19 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Límites permanentes — no cambian con el interruptor
 export const PLAN_LIMITS = {
   free:    { analyses_per_day: 3  },
   premium: { analyses_per_day: 10 },
 };
 
+async function getSupabaseAdmin() {
+  const { createClient } = await import('@supabase/supabase-js');
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
 export async function getUserPlan(userId: string): Promise<'free' | 'premium'> {
   try {
+    const supabaseAdmin = await getSupabaseAdmin();
     const { data } = await supabaseAdmin
       .from('subscriptions')
       .select('plan, status, current_period_end')
@@ -31,6 +32,7 @@ export async function checkAndIncrementUsage(
   userId: string,
   plan: 'free' | 'premium'
 ): Promise<{ allowed: boolean; count: number; limit: number }> {
+  const supabaseAdmin = await getSupabaseAdmin();
   const today = new Date().toISOString().split('T')[0];
   const limit = PLAN_LIMITS[plan].analyses_per_day;
 
