@@ -167,6 +167,11 @@
   "verified": "Verificado",
   "see_all": "Ver todas las opiniones",
   "based_on": "Basado en",
-  "reviews_word": "opiniones"
+  "reviews_word": "opiniones",
+  "see_all": "Ver todas las reseñas →",
+  "cancel": "Cancelar",
+  "page_title": "Reseñas de usuarios",
+  "page_description": "Lo que dicen las personas que ya usan Sympto+",
+  "back_home": "Volver al inicio"
 }
 }
