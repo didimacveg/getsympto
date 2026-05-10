@@ -138,7 +138,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href={`/${locale}/resenas`}
+              href={`/${locale}/reviews`}
               className="text-sm text-slate-500 hover:text-blue-600 transition-colors hidden sm:block px-3 py-1.5"
             >
               {locale === 'zh' ? '评价' : locale === 'ru' ? 'Отзывы' : locale === 'en' ? 'Reviews' : 'Reseñas'}

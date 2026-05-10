@@ -48,7 +48,10 @@ export default function ReviewsSection({ showAll = false }: { showAll?: boolean 
   const t = useTranslations('reviews');
   const locale = useLocale();
   const { user } = useAuth();
+
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [avgRating, setAvgRating] = useState('5.0');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -57,15 +60,30 @@ export default function ReviewsSection({ showAll = false }: { showAll?: boolean 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => { fetchReviews(); }, [locale]);
+  useEffect(() => { fetchReviews(); }, [locale, showAll]);
 
   const fetchReviews = async () => {
     setLoading(true);
+
+    // Query 1: stats globales de TODAS las reseñas
+    const { data: allStats } = await supabase
+      .from('reviews')
+      .select('rating');
+
+    if (allStats && allStats.length > 0) {
+      const total = allStats.length;
+      const avg = (allStats.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1);
+      setTotalCount(total);
+      setAvgRating(avg);
+    }
+
+    // Query 2: reseñas a mostrar (3 en home, todas en /reviews)
     const { data } = await supabase
       .from('reviews')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(showAll ? 100 : 3);
+
     setReviews(data || []);
     setLoading(false);
   };
@@ -92,6 +110,7 @@ export default function ReviewsSection({ showAll = false }: { showAll?: boolean 
     await supabase.from('reviews').insert({
       user_id: user.id, name, rating, comment, locale, verified: true, translations,
     });
+
     setSubmitted(true);
     setComment('');
     setRating(5);
@@ -99,10 +118,6 @@ export default function ReviewsSection({ showAll = false }: { showAll?: boolean 
     fetchReviews();
     setSubmitting(false);
   };
-
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-    : '5.0';
 
   return (
     <section className="mt-16 border-t border-slate-200 pt-10">
@@ -113,7 +128,9 @@ export default function ReviewsSection({ showAll = false }: { showAll?: boolean 
           <span className="text-3xl font-bold text-slate-800">{avgRating}</span>
           <div>
             <Stars rating={Math.round(parseFloat(avgRating))} />
-            <p className="text-xs text-slate-400">{t('based_on')} {reviews.length} {t('reviews_word')}</p>
+            <p className="text-xs text-slate-400">
+              {t('based_on')} {totalCount} {t('reviews_word')}
+            </p>
           </div>
         </div>
       </div>
@@ -143,7 +160,6 @@ export default function ReviewsSection({ showAll = false }: { showAll?: boolean 
         </div>
       )}
 
-      {/* Botón dejar reseña + ver más */}
       <div className="mt-8 flex flex-col items-center gap-4">
         {submitted ? (
           <p className="text-green-600 font-medium text-sm">{t('thank_you')}</p>
@@ -186,15 +202,15 @@ export default function ReviewsSection({ showAll = false }: { showAll?: boolean 
           </button>
         )}
 
-        {/* Ver más reseñas — solo en la home, no en la página de reseñas */}
+        {/* ✅ Link correcto a /reviews */}
         {!showAll && (
           <Link
-            href={`/${locale}/resenas`}
+            href={`/${locale}/reviews`}
             className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 text-sm transition-colors"
           >
             {t('see_all')}
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7-7" />
             </svg>
           </Link>
         )}
