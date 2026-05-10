@@ -3,8 +3,24 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
+    // Verificar variables de entorno
+    if (!process.env.LEMONSQUEEZY_API_KEY || process.env.LEMONSQUEEZY_API_KEY === 'placeholder') {
+      console.error('❌ LEMONSQUEEZY_API_KEY no configurada');
+      return NextResponse.json({ error: 'Payment not configured' }, { status: 500 });
+    }
+    if (!process.env.LEMONSQUEEZY_STORE_ID || process.env.LEMONSQUEEZY_STORE_ID === 'placeholder') {
+      console.error('❌ LEMONSQUEEZY_STORE_ID no configurada');
+      return NextResponse.json({ error: 'Payment not configured' }, { status: 500 });
+    }
+    if (!process.env.LEMONSQUEEZY_VARIANT_ID || process.env.LEMONSQUEEZY_VARIANT_ID === 'placeholder') {
+      console.error('❌ LEMONSQUEEZY_VARIANT_ID no configurada');
+      return NextResponse.json({ error: 'Payment not configured' }, { status: 500 });
+    }
+
     const authHeader = request.headers.get('authorization');
-    if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const token = authHeader.replace('Bearer ', '');
     const supabaseAdmin = createClient(
@@ -13,11 +29,22 @@ export async function POST(request: Request) {
     );
 
     const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const { locale } = await request.json();
+    let locale = 'es';
+    try {
+      const body = await request.json();
+      locale = body.locale || 'es';
+    } catch {
+      // locale por defecto si el body falla
+    }
 
-    // ✅ Formato correcto de Lemon Squeezy API
+    console.log('🛒 Creando checkout para:', user.email, '| Locale:', locale);
+    console.log('🔧 Store ID:', process.env.LEMONSQUEEZY_STORE_ID);
+    console.log('🔧 Variant ID:', process.env.LEMONSQUEEZY_VARIANT_ID);
+
     const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
       method: 'POST',
       headers: {
@@ -60,20 +87,24 @@ export async function POST(request: Request) {
     const checkout = await response.json();
 
     if (!response.ok) {
-      console.error('Lemon Squeezy error:', JSON.stringify(checkout));
-      return NextResponse.json({ error: 'Checkout creation failed', details: checkout }, { status: 500 });
+      console.error('❌ Lemon Squeezy error:', JSON.stringify(checkout));
+      return NextResponse.json(
+        { error: 'Checkout creation failed', details: checkout },
+        { status: 500 }
+      );
     }
 
     const url = checkout.data?.attributes?.url;
     if (!url) {
-      console.error('No URL in response:', checkout);
-      return NextResponse.json({ error: 'No checkout URL' }, { status: 500 });
+      console.error('❌ No URL en respuesta:', JSON.stringify(checkout));
+      return NextResponse.json({ error: 'No checkout URL received' }, { status: 500 });
     }
 
+    console.log('✅ Checkout URL generada:', url);
     return NextResponse.json({ url });
 
   } catch (error) {
-    console.error('Checkout error:', error);
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+    console.error('❌ Error inesperado en checkout:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
