@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import BodyMap from '@/components/BodyMap';
 import SymptomForm from '@/components/SymptomForm';
 import Report from '@/components/Report';
-import ReviewsToggle from '@/components/ReviewsToggle';
+import ReviewsSection from '@/components/ReviewsSection';
 import AuthButton from '@/components/AuthButton';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -137,6 +137,12 @@ export default function Home() {
             <span className="font-bold text-slate-800 text-base">Sympto+</span>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href={`/${locale}/resenas`}
+              className="text-sm text-slate-500 hover:text-blue-600 transition-colors hidden sm:block px-3 py-1.5"
+            >
+              {locale === 'zh' ? '评价' : locale === 'ru' ? 'Отзывы' : locale === 'en' ? 'Reviews' : 'Reseñas'}
+            </Link>
             <Link
               href={`/${locale}/sintomas`}
               className="text-sm text-slate-500 hover:text-blue-600 transition-colors hidden sm:block px-3 py-1.5"
@@ -320,7 +326,7 @@ export default function Home() {
           </div>
         </section>
 
-        <ReviewsToggle />
+        <ReviewsSection />
 
         <footer className="mt-12 text-center text-xs text-slate-400 pb-6">
           <p>{t('footer_copy')}</p>

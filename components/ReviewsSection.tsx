@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -37,15 +38,13 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           onMouseEnter={() => setHover(i)}
           onMouseLeave={() => setHover(0)}
           className={`text-2xl transition ${i <= (hover || value) ? 'text-yellow-400' : 'text-slate-200'}`}
-        >
-          ★
-        </button>
+        >★</button>
       ))}
     </div>
   );
 }
 
-export default function ReviewsSection() {
+export default function ReviewsSection({ showAll = false }: { showAll?: boolean }) {
   const t = useTranslations('reviews');
   const locale = useLocale();
   const { user } = useAuth();
@@ -58,9 +57,7 @@ export default function ReviewsSection() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [locale]);
+  useEffect(() => { fetchReviews(); }, [locale]);
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -68,25 +65,20 @@ export default function ReviewsSection() {
       .from('reviews')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(20);
+      .limit(showAll ? 100 : 3);
     setReviews(data || []);
     setLoading(false);
   };
 
   const getComment = (review: Review): string => {
-    if (review.translations && review.translations[locale]) {
-      return review.translations[locale];
-    }
+    if (review.translations?.[locale]) return review.translations[locale];
     return review.comment;
   };
 
   const submitReview = async () => {
     if (!user || !comment.trim()) return;
     setSubmitting(true);
-
     const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario';
-
-    // Traducir automáticamente a los 4 idiomas
     let translations: Record<string, string> = { [locale]: comment };
     try {
       const res = await fetch('/api/translate', {
@@ -94,23 +86,12 @@ export default function ReviewsSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: comment, sourceLocale: locale }),
       });
-      if (res.ok) {
-        translations = await res.json();
-      }
-    } catch {
-      console.warn('Translation failed, saving original only');
-    }
+      if (res.ok) translations = await res.json();
+    } catch { console.warn('Translation failed'); }
 
     await supabase.from('reviews').insert({
-      user_id: user.id,
-      name,
-      rating,
-      comment,
-      locale,
-      verified: true,
-      translations,
+      user_id: user.id, name, rating, comment, locale, verified: true, translations,
     });
-
     setSubmitted(true);
     setComment('');
     setRating(5);
@@ -156,17 +137,18 @@ export default function ReviewsSection() {
                 </div>
                 <Stars rating={review.rating} />
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">{getComment(review)}</p>
+              <p className="text-sm text-slate-600 leading-relaxed">"{getComment(review)}"</p>
             </div>
           ))}
         </div>
       )}
 
-      <div className="mt-8 text-center">
+      {/* Botón dejar reseña + ver más */}
+      <div className="mt-8 flex flex-col items-center gap-4">
         {submitted ? (
           <p className="text-green-600 font-medium text-sm">{t('thank_you')}</p>
         ) : showForm && user ? (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 max-w-lg mx-auto text-left">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 w-full max-w-lg text-left">
             <h3 className="font-semibold text-slate-800 mb-4">{t('write_review')}</h3>
             <div className="mb-3">
               <label className="text-xs font-medium text-slate-500 block mb-1">{t('rating')}</label>
@@ -191,7 +173,7 @@ export default function ReviewsSection() {
                 {submitting ? '...' : t('submit')}
               </button>
               <button onClick={() => setShowForm(false)} className="text-sm text-slate-400 hover:text-slate-600">
-                Cancelar
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -202,6 +184,19 @@ export default function ReviewsSection() {
           >
             ⭐ {user ? t('write_review') : t('login_required')}
           </button>
+        )}
+
+        {/* Ver más reseñas — solo en la home, no en la página de reseñas */}
+        {!showAll && (
+          <Link
+            href={`/${locale}/resenas`}
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 text-sm transition-colors"
+          >
+            {t('see_all')}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         )}
       </div>
 
