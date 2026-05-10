@@ -168,6 +168,11 @@
   "verified": "Verified",
   "see_all": "See all reviews",
   "based_on": "Based on",
-  "reviews_word": "reviews"
+  "reviews_word": "reviews",
+  "see_all": "See all reviews →",
+  "cancel": "Cancel",
+  "page_title": "User reviews",
+  "page_description": "What people who already use Sympto+ say",
+  "back_home": "Back to home"
 }
 }
