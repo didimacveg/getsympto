@@ -1,19 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
-    // Verificar variables de entorno
     if (!process.env.LEMONSQUEEZY_API_KEY || process.env.LEMONSQUEEZY_API_KEY === 'placeholder') {
-      console.error('❌ LEMONSQUEEZY_API_KEY no configurada');
-      return NextResponse.json({ error: 'Payment not configured' }, { status: 500 });
-    }
-    if (!process.env.LEMONSQUEEZY_STORE_ID || process.env.LEMONSQUEEZY_STORE_ID === 'placeholder') {
-      console.error('❌ LEMONSQUEEZY_STORE_ID no configurada');
-      return NextResponse.json({ error: 'Payment not configured' }, { status: 500 });
-    }
-    if (!process.env.LEMONSQUEEZY_VARIANT_ID || process.env.LEMONSQUEEZY_VARIANT_ID === 'placeholder') {
-      console.error('❌ LEMONSQUEEZY_VARIANT_ID no configurada');
       return NextResponse.json({ error: 'Payment not configured' }, { status: 500 });
     }
 
@@ -23,6 +12,9 @@ export async function POST(request: Request) {
     }
 
     const token = authHeader.replace('Bearer ', '');
+
+    // ✅ createClient dentro de la función
+    const { createClient } = await import('@supabase/supabase-js');
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -38,12 +30,8 @@ export async function POST(request: Request) {
       const body = await request.json();
       locale = body.locale || 'es';
     } catch {
-      // locale por defecto si el body falla
+      // locale por defecto
     }
-
-    console.log('🛒 Creando checkout para:', user.email, '| Locale:', locale);
-    console.log('🔧 Store ID:', process.env.LEMONSQUEEZY_STORE_ID);
-    console.log('🔧 Variant ID:', process.env.LEMONSQUEEZY_VARIANT_ID);
 
     const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
       method: 'POST',
@@ -58,9 +46,7 @@ export async function POST(request: Request) {
           attributes: {
             checkout_data: {
               email: user.email,
-              custom: {
-                user_id: user.id,
-              },
+              custom: { user_id: user.id },
             },
             product_options: {
               redirect_url: `https://www.getsympto.app/${locale}/premium?upgraded=true`,
@@ -88,10 +74,7 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       console.error('❌ Lemon Squeezy error:', JSON.stringify(checkout));
-      return NextResponse.json(
-        { error: 'Checkout creation failed', details: checkout },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Checkout creation failed' }, { status: 500 });
     }
 
     const url = checkout.data?.attributes?.url;
@@ -100,7 +83,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No checkout URL received' }, { status: 500 });
     }
 
-    console.log('✅ Checkout URL generada:', url);
     return NextResponse.json({ url });
 
   } catch (error) {
