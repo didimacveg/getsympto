@@ -390,7 +390,13 @@ export default function PerfilPage() {
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-slate-800 truncate">{name}</h1>
+              {/* ✅ Corona si es premium */}
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-800 truncate">{name}</h1>
+                {canUsePremiumFeature && PREMIUM_ENABLED && (
+                  <span className="text-amber-400 text-lg">👑</span>
+                )}
+              </div>
               <p className="text-slate-400 text-sm truncate">{user.email}</p>
               <p className="text-slate-300 text-xs mt-0.5">{t.member_since} {memberSince}</p>
             </div>

@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import AuthModal from './AuthModal';
+import { PREMIUM_ENABLED } from '@/lib/flags';
 
 export default function AuthButton() {
   const t = useTranslations('auth');
@@ -13,6 +14,7 @@ export default function AuthButton() {
   const [showModal, setShowModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
@@ -27,8 +29,25 @@ export default function AuthButton() {
         .then(({ data }) => {
           if (data?.avatar_url) setAvatarUrl(data.avatar_url);
         });
+
+      // ✅ Comprobar plan premium
+      if (PREMIUM_ENABLED) {
+        supabase
+          .from('subscriptions')
+          .select('plan, status, current_period_end')
+          .eq('user_id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (data?.plan === 'premium' && data?.status === 'active') {
+              if (!data.current_period_end || new Date(data.current_period_end) > new Date()) {
+                setIsPremium(true);
+              }
+            }
+          });
+      }
     } else {
       setAvatarUrl(null);
+      setIsPremium(false);
     }
   }, [user]);
 
@@ -57,12 +76,17 @@ export default function AuthButton() {
             </div>
           )}
           <span className="max-w-20 truncate">{name}</span>
+          {/* ✅ Corona premium */}
+          {isPremium && <span className="text-amber-400 text-xs">👑</span>}
         </button>
 
         {showMenu && (
           <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 min-w-36">
             <div className="px-3 py-2 border-b border-slate-100">
               <p className="text-xs text-slate-500 truncate">{user.email}</p>
+              {isPremium && (
+                <p className="text-xs text-amber-500 font-medium">👑 Premium</p>
+              )}
             </div>
             <Link
               href={`/${locale}/perfil`}

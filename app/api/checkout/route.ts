@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 export async function POST(request: Request) {
   // Debug: ver qué variables faltan
   const missing = [];
@@ -45,6 +46,11 @@ export async function POST(request: Request) {
       // locale por defecto
     }
 
+    // ✅ Redirect dinámico según el host actual
+    const host = request.headers.get('host') || 'www.getsympto.app';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const redirectUrl = `${protocol}://${host}/${locale}/premium?upgraded=true`;
+
     const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
       method: 'POST',
       headers: {
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
               custom: { user_id: user.id },
             },
             product_options: {
-              redirect_url: `https://www.getsympto.app/${locale}/premium?upgraded=true`,
+              redirect_url: redirectUrl,
             },
           },
           relationships: {
