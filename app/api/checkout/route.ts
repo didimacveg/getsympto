@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
-
 export async function POST(request: Request) {
+  // Debug: ver qué variables faltan
+  const missing = [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missing.push('NEXT_PUBLIC_SUPABASE_URL');
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+  if (!process.env.LEMONSQUEEZY_API_KEY) missing.push('LEMONSQUEEZY_API_KEY');
+  if (!process.env.LEMONSQUEEZY_STORE_ID) missing.push('LEMONSQUEEZY_STORE_ID');
+  if (!process.env.LEMONSQUEEZY_VARIANT_ID) missing.push('LEMONSQUEEZY_VARIANT_ID');
+
+  if (missing.length > 0) {
+    console.error('❌ Variables faltantes:', missing.join(', '));
+    return NextResponse.json({ error: 'Missing env vars: ' + missing.join(', ') }, { status: 500 });
+  }
+
   try {
     if (!process.env.LEMONSQUEEZY_API_KEY || process.env.LEMONSQUEEZY_API_KEY === 'placeholder') {
       return NextResponse.json({ error: 'Payment not configured' }, { status: 500 });
