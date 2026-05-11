@@ -12,10 +12,14 @@ export default function middleware(request: NextRequest) {
     if (contentLength && parseInt(contentLength) > 51200) {
       return NextResponse.json({ error: 'Request too large' }, { status: 413 });
     }
+    // ✅ Dejar pasar las rutas API sin tocarlas
+    return NextResponse.next();
   }
+
   return intlMiddleware(request);
 }
 
 export const config = {
-  matcher: ['/((?!_next|_vercel|.*\\..*).*)'],
+  // ✅ Excluir api, _next, _vercel y archivos estáticos
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 };
