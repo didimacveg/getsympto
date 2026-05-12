@@ -4810,6 +4810,90 @@ export const SYMPTOMS: Symptom[] = [
       },
     },
   },
+  {
+  slug: 'sintomas-hantavirus',
+  zone: 'pecho',
+  emoji: '🦠',
+  related: ['fiebre', 'tos-persistente', 'dolor-muscular'],
+  content: {
+    es: {
+      metaTitle: 'Síntomas de hantavirus: señales de alarma y cuándo ir a urgencias | Sympto+',
+      metaDescription: 'Síntomas del hantavirus en humanos: fiebre, dolor muscular, dificultad respiratoria. Cuándo es urgente y cómo prevenir el contagio.',
+      keywords: 'sintomas hantavirus, hantavirus sintomas humanos, hantavirus contagio, hantavirus españa, fiebre hantavirus',
+      intro: 'El hantavirus es una infección viral transmitida por roedores que puede causar síntomas graves. Reconocer sus señales tempranas es clave para actuar a tiempo.',
+      causes: [
+        { name: 'Inhalación de excrementos de roedores', description: 'La causa principal. Respirar partículas de orina, heces o saliva de ratones infectados transmite el virus.' },
+        { name: 'Contacto directo con roedores', description: 'Tocar roedores infectados o sus nidos puede transmitir el virus a través de la piel o mucosas.' },
+        { name: 'Zonas rurales o graneros', description: 'Espacios cerrados con presencia de roedores sin ventilar tienen mayor riesgo de concentrar partículas infectadas.' },
+        { name: 'Limpieza sin protección', description: 'Limpiar espacios con excrementos de roedores sin mascarilla ni guantes es una causa frecuente de exposición.' },
+      ],
+      redFlags: [
+        'Dificultad para respirar tras días de fiebre y dolores musculares',
+        'Fiebre alta (38-40°C) con fatiga intensa y dolores musculares tras exposición a roedores',
+        'Tos seca con sensación de presión en el pecho',
+        'Caída brusca de la presión arterial',
+      ],
+      whenToAct: 'Si tras exposición a roedores tienes fiebre, fatiga intensa y dolores musculares seguidos de dificultad para respirar, acude a urgencias de inmediato. No esperes.',
+    },
+    en: {
+      metaTitle: 'Hantavirus symptoms: warning signs and when to go to the ER | Sympto+',
+      metaDescription: 'Hantavirus symptoms in humans: fever, muscle pain, respiratory difficulty. When it is urgent and how to prevent infection.',
+      keywords: 'hantavirus symptoms, hantavirus symptoms humans, hantavirus transmission, hantavirus lungs, hantavirus fever',
+      intro: 'Hantavirus is a rodent-borne viral infection that can cause serious symptoms. Recognising early signs is key to acting in time.',
+      causes: [
+        { name: 'Inhalation of rodent excrement', description: 'The main cause. Breathing particles from urine, faeces or saliva of infected mice transmits the virus.' },
+        { name: 'Direct contact with rodents', description: 'Touching infected rodents or their nests can transmit the virus through skin or mucous membranes.' },
+        { name: 'Rural areas or barns', description: 'Enclosed spaces with rodents and poor ventilation carry higher risk of concentrating infected particles.' },
+        { name: 'Cleaning without protection', description: 'Cleaning spaces with rodent excrement without mask or gloves is a common cause of exposure.' },
+      ],
+      redFlags: [
+        'Difficulty breathing after days of fever and muscle pain',
+        'High fever (38-40°C) with intense fatigue and muscle pain after rodent exposure',
+        'Dry cough with chest pressure sensation',
+        'Sudden drop in blood pressure',
+      ],
+      whenToAct: 'If after rodent exposure you have fever, intense fatigue and muscle pain followed by breathing difficulty, go to the ER immediately. Do not wait.',
+    },
+    zh: {
+      metaTitle: '汉坦病毒症状：警告信号及何时去急诊室 | Sympto+',
+      metaDescription: '人类汉坦病毒症状：发烧、肌肉疼痛、呼吸困难。何时紧急及如何预防感染。',
+      keywords: '汉坦病毒症状, 汉坦病毒传播, 汉坦病毒发烧, 汉坦病毒肺部, 汉坦病毒西班牙',
+      intro: '汉坦病毒是一种由啮齿动物传播的病毒感染，可能导致严重症状。及早识别信号是及时采取行动的关键。',
+      causes: [
+        { name: '吸入啮齿动物排泄物', description: '主要原因。呼吸感染小鼠的尿液、粪便或唾液颗粒会传播病毒。' },
+        { name: '直接接触啮齿动物', description: '接触感染的啮齿动物或其巢穴可能通过皮肤或黏膜传播病毒。' },
+        { name: '农村地区或谷仓', description: '有啮齿动物且通风不良的封闭空间携带感染颗粒的风险更高。' },
+        { name: '无防护清洁', description: '不戴口罩和手套清洁有啮齿动物排泄物的空间是常见的暴露原因。' },
+      ],
+      redFlags: [
+        '发烧和肌肉疼痛数天后出现呼吸困难',
+        '接触啮齿动物后高烧（38-40°C）伴极度疲劳和肌肉疼痛',
+        '干咳伴胸部压迫感',
+        '血压骤降',
+      ],
+      whenToAct: '如果接触啮齿动物后出现发烧、极度疲劳和肌肉疼痛，随后呼吸困难，立即去急诊室，不要等待。',
+    },
+    ru: {
+      metaTitle: 'Симптомы хантавируса: тревожные признаки и когда в скорую | Sympto+',
+      metaDescription: 'Симптомы хантавируса у людей: лихорадка, боли в мышцах, затруднённое дыхание. Когда срочно и как предотвратить заражение.',
+      keywords: 'симптомы хантавируса, хантавирус передача, хантавирус лихорадка, хантавирус лёгкие, хантавирус испания',
+      intro: 'Хантавирус — вирусная инфекция, передаваемая грызунами, которая может вызывать серьёзные симптомы. Раннее распознавание признаков — ключ к своевременным действиям.',
+      causes: [
+        { name: 'Вдыхание экскрементов грызунов', description: 'Основная причина. Вдыхание частиц мочи, кала или слюны заражённых мышей передаёт вирус.' },
+        { name: 'Прямой контакт с грызунами', description: 'Прикосновение к заражённым грызунам или их гнёздам может передать вирус через кожу или слизистые.' },
+        { name: 'Сельские районы или амбары', description: 'Закрытые помещения с грызунами и плохой вентиляцией несут повышенный риск концентрации заражённых частиц.' },
+        { name: 'Уборка без защиты', description: 'Уборка помещений с экскрементами грызунов без маски и перчаток — частая причина заражения.' },
+      ],
+      redFlags: [
+        'Затруднённое дыхание после нескольких дней лихорадки и болей в мышцах',
+        'Высокая температура (38-40°C) с сильной усталостью и болями в мышцах после контакта с грызунами',
+        'Сухой кашель с ощущением давления в груди',
+        'Резкое падение артериального давления',
+      ],
+      whenToAct: 'Если после контакта с грызунами появились лихорадка, сильная усталость и боли в мышцах, а затем затруднённое дыхание — немедленно в скорую. Не ждите.',
+    },
+  },
+},
 ];
 
 export const SYMPTOM_SLUGS = SYMPTOMS.map(s => s.slug);
