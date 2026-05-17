@@ -32,7 +32,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [];
   const now = new Date();
 
-  // Homepages
   LOCALES.forEach(locale => {
     entries.push({
       url: `${BASE}/${locale}`,
@@ -42,7 +41,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  // Blog articles
   BLOG_SLUGS.forEach(slug => {
     LOCALES.forEach(locale => {
       entries.push({
@@ -54,7 +52,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  // Symptom pages
   SYMPTOM_SLUGS.forEach(slug => {
     LOCALES.forEach(locale => {
       entries.push({
@@ -66,8 +63,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  // Static pages
-  ['premium', 'perfil', 'reviews'].forEach(page => {
+  ['premium', 'perfil', 'reviews', 'privacidad', 'terminos'].forEach(page => {
     LOCALES.forEach(locale => {
       entries.push({
         url: `${BASE}/${locale}/${page}`,

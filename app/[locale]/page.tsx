@@ -90,7 +90,6 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) {
         if (data.upgrade_required) {
-          // ✅ Muestra modal en vez de error en línea
           setShowUpgradeModal(true);
         } else {
           setError(data.error || 'Error');
@@ -154,7 +153,6 @@ export default function Home() {
             >
               Blog
             </Link>
-            {/* ✅ Siempre visible cuando premium está activo, sin importar si hay usuario */}
             {PREMIUM_ENABLED && (
               <Link
                 href={`/${locale}/premium`}
@@ -324,10 +322,19 @@ export default function Home() {
         <footer className="mt-12 text-center text-xs text-slate-400 pb-6">
           <p>{t('footer_copy')}</p>
           <p className="mt-1">{t('footer_disclaimer')}</p>
+          <div className="flex justify-center gap-4 mt-3">
+            <Link href={`/${locale}/privacidad`} className="hover:text-blue-600 transition">
+              {locale === 'en' ? 'Privacy Policy' : locale === 'zh' ? '隐私政策' : locale === 'ru' ? 'Конфиденциальность' : 'Privacidad'}
+            </Link>
+            <span>·</span>
+            <Link href={`/${locale}/terminos`} className="hover:text-blue-600 transition">
+              {locale === 'en' ? 'Terms of Service' : locale === 'zh' ? '服务条款' : locale === 'ru' ? 'Условия' : 'Términos'}
+            </Link>
+          </div>
         </footer>
       </div>
 
-      {/* ✅ Modal de upgrade cuando se llega al límite */}
+      {/* Modal de upgrade cuando se llega al límite */}
       {showUpgradeModal && (
         <PremiumUpgradeModal onClose={() => setShowUpgradeModal(false)} />
       )}

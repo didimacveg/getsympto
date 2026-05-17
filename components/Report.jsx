@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import SymptomTracker from './SymptomTracker';
 
 const SEVERITY_COLORS = {
   bajo: 'bg-green-100 text-green-700 border-green-200',
@@ -148,6 +149,12 @@ export default function Report({ data, onReset }) {
         >
           {copied ? sl.copied : sl.share}
         </button>
+
+        <SymptomTracker
+          severity={data.severity}
+          zone={data.zone}
+          description={data.severity_explanation}
+        />
 
         <button
           onClick={onReset}
