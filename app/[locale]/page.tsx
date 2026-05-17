@@ -11,6 +11,7 @@ import PremiumUpgradeModal from '@/components/PremiumUpgradeModal';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { PREMIUM_ENABLED } from '@/lib/flags';
+import SeasonalBanner from '@/components/SeasonalBanner';
 
 const SEO_ZONES_ES = [
   { zona: 'Cabeza', ejemplos: 'dolor de cabeza, migraña, presión en las sienes' },
@@ -189,6 +190,8 @@ export default function Home() {
           <span className="shrink-0">⚠️</span>
           <span>{t('disclaimer')} <strong>{t('emergency_number')}</strong></span>
         </div>
+
+        <SeasonalBanner />
 
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

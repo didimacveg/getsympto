@@ -11,49 +11,57 @@ import AuthButton from '@/components/AuthButton';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
-const META = {
-  es: {
-    title: 'Sympto+ | ¿Qué zona te molesta?',
-    description: 'Selecciona la zona del cuerpo, describe tu síntoma y recibe orientación informativa general. No es diagnóstico médico.',
-  },
-  en: {
-    title: 'Sympto+ | Which area bothers you?',
-    description: 'Select the body area, describe your symptom and receive general informational guidance. Not a medical diagnosis.',
-  },
-  zh: {
-    title: 'Sympto+ | 哪个部位让您不舒服？',
-    description: '选择身体部位，描述您的症状，获取一般性信息指导。这不是医学诊断。',
-  },
-  ru: {
-    title: 'Sympto+ | Какая зона вас беспокоит?',
-    description: 'Выберите зону тела, опишите симптом и получите общую информационную рекомендацию. Это не медицинский диагноз.',
-  },
-};
-
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  const meta = META[locale as keyof typeof META] || META.es;
+
+  const titles: Record<string, string> = {
+    es: 'Sympto+ | Analizador de síntomas con IA — ¿Qué me pasa?',
+    en: 'Sympto+ | AI Symptom Checker — What\'s wrong with me?',
+    zh: 'Sympto+ | AI症状检查器 — 我怎么了？',
+    ru: 'Sympto+ | ИИ-анализатор симптомов — Что со мной?',
+  };
+
+  const descriptions: Record<string, string> = {
+    es: 'Describe tus síntomas, selecciona la zona del cuerpo afectada y recibe en segundos un análisis con causas probables, nivel de urgencia y qué hacer. Gratis, anónimo, en 4 idiomas. Síntomas de gripe, hantavirus, dolor de cabeza, espalda y más.',
+    en: 'Describe your symptoms, select the affected body area and get in seconds an analysis with probable causes, urgency level and what to do. Free, anonymous, in 4 languages.',
+    zh: '描述您的症状，选择受影响的身体部位，几秒钟内获得可能原因、紧急程度和建议的分析。免费、匿名、4种语言。',
+    ru: 'Опишите симптомы, выберите зону тела и получите анализ с вероятными причинами, уровнем срочности и рекомендациями за секунды. Бесплатно, анонимно, на 4 языках.',
+  };
+
+  const keywords: Record<string, string> = {
+    es: 'síntomas, analizador de síntomas, qué me pasa, dolor de cabeza, hantavirus síntomas, gripe 2025, golpe de calor, síntomas enfermedad, checker síntomas, inteligencia artificial médica',
+    en: 'symptoms, symptom checker, what is wrong with me, headache, hantavirus symptoms, flu 2025, heat stroke, AI medical',
+    zh: '症状,症状检查器,头痛,汉坦病毒症状,AI医疗',
+    ru: 'симптомы, анализатор симптомов, хантавирус симптомы, ИИ медицина',
+  };
+
   return {
-    title: meta.title,
-    description: meta.description,
-    keywords: 'síntomas, dolor corporal, orientación médica, qué me duele, síntomas corporales, symptoms, body pain, symptom checker',
+    title: titles[locale] || titles.es,
+    description: descriptions[locale] || descriptions.es,
+    keywords: keywords[locale] || keywords.es,
     openGraph: {
-      title: meta.title,
-      description: meta.description,
-      url: `https://getsympto.app/${locale}`,
+      title: titles[locale] || titles.es,
+      description: descriptions[locale] || descriptions.es,
+      url: `https://www.getsympto.app/${locale}`,
       siteName: 'Sympto+',
+      locale: locale === 'zh' ? 'zh_CN' : locale === 'ru' ? 'ru_RU' : locale === 'en' ? 'en_GB' : 'es_ES',
       type: 'website',
       images: [{ url: 'https://getsympto.app/opengraph-image.png', width: 1200, height: 630, alt: 'Sympto+' }],
     },
+    twitter: {
+      card: 'summary_large_image',
+      title: titles[locale] || titles.es,
+      description: descriptions[locale] || descriptions.es,
+    },
     robots: { index: true, follow: true },
     alternates: {
-      canonical: `https://getsympto.app/${locale}`,
+      canonical: `https://www.getsympto.app/${locale}`,
       languages: {
-        'es': 'https://getsympto.app/es',
-        'en': 'https://getsympto.app/en',
-        'zh': 'https://getsympto.app/zh',
-        'ru': 'https://getsympto.app/ru',
-        'x-default': 'https://getsympto.app/es',
+        'es': 'https://www.getsympto.app/es',
+        'en': 'https://www.getsympto.app/en',
+        'zh': 'https://www.getsympto.app/zh',
+        'ru': 'https://www.getsympto.app/ru',
+        'x-default': 'https://www.getsympto.app/es',
       },
     },
     icons: { icon: '/logo.svg', apple: '/logo.svg' },
