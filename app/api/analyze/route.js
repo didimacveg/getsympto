@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { validateInput } from '@/lib/security';
 import { SYSTEM_PROMPT, buildUserPrompt } from '@/lib/prompts';
 import { getUserPlan, checkAndIncrementUsage } from '@/lib/subscription';
+import { sanitizeDescription, sanitizeZone, sanitizeLocale } from '@/lib/sanitize';
 
 const requestLog = new Map();
 
@@ -20,7 +21,7 @@ function isRateLimited(ip) {
 const LIMIT_MESSAGES = {
   es: (limit, isPremium) => isPremium
     ? `Has alcanzado el límite de ${limit} análisis diarios. Vuelve mañana.`
-    : `Has alcanzado el límite de ${limit} análisis diarios del plan gratuito. Vuelve mañana.`,
+    : `Has alcanzado el límite de ${limit} análisis del plan gratuito. Vuelve mañana.`,
   en: (limit, isPremium) => isPremium
     ? `You have reached the daily limit of ${limit} analyses. Come back tomorrow.`
     : `You have reached the daily limit of ${limit} analyses on the free plan. Come back tomorrow.`,
@@ -29,7 +30,6 @@ const LIMIT_MESSAGES = {
 };
 
 export async function POST(request) {
-  // ✅ Cliente Anthropic dentro de la función
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -44,13 +44,27 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Solicitud inválida.' }, { status: 400 });
   }
 
-  const { zones, zone, description, duration, intensity, locale = 'es' } = body;
+  // ✅ Sanitizar todos los inputs antes de cualquier procesamiento
+  const rawZones = Array.isArray(body.zones) ? body.zones : (body.zone ? [body.zone] : []);
+  const zones = rawZones.map(z => sanitizeZone(String(z))).filter(Boolean).slice(0, 5);
+  const zone = zones[0] || '';
+  const description = sanitizeDescription(String(body.description || ''));
+  const locale = sanitizeLocale(String(body.locale || 'es'));
+  const duration = body.duration ? String(body.duration).slice(0, 100) : undefined;
+  const intensity = body.intensity ? String(body.intensity).slice(0, 50) : undefined;
+
+  // Validación básica después de sanitizar
+  if (!description || description.length < 3) {
+    return NextResponse.json({ error: 'Descripción demasiado corta.' }, { status: 400 });
+  }
+  if (zones.length === 0) {
+    return NextResponse.json({ error: 'Selecciona al menos una zona.' }, { status: 400 });
+  }
 
   // Verificar autenticación y límites
   const authHeader = request.headers.get('authorization');
   if (authHeader) {
     try {
-      // ✅ createClient dentro de la función
       const { createClient } = await import('@supabase/supabase-js');
       const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
